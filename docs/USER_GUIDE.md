@@ -8,19 +8,15 @@ CardioSense AI facilitates advanced cardiovascular decision-making through an in
 
 The CardioSense AI dashboard provides a comprehensive medical interface for risk assessment.
 
-````carousel
-![Patient Vitals Input](../app/assets/App_Screenshots/01.png)
-<!-- slide -->
-![Risk Summary & Gauge](../app/assets/App_Screenshots/02.png)
-<!-- slide -->
-![Diagnostic Analysis](../app/assets/App_Screenshots/03.png)
-````
+<p align="center">
+  <img src="../app/assets/App_Screenshots/01.png" width="30%" />
+  <img src="../app/assets/App_Screenshots/02.png" width="30%" />
+  <img src="../app/assets/App_Screenshots/03.png" width="30%" />
+</p>
 
 ### Patient Inputs & Risk Pulse
 - **Sidebar**: Input traditional cardiovascular risk factors (Age, BP, Cholesterol, etc.).
 - **Risk Pulse Gauge**: Real-time visual indicator of heart disease probability.
-![Patient Inputs](../app/assets/App_Screenshots/01.png)
-![Risk Pulse Gauge](../app/assets/App_Screenshots/02.png)
 ---
 
 ## 2. Deep Dive Modules
