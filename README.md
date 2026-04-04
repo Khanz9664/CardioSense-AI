@@ -147,7 +147,7 @@ CardioSense AI exposes a production-grade REST API for integration with Hospital
 ## 📂 Exhaustive Project Blueprint
 
 ```text
-heart_disease_ai/
+CardioSense-AI/
 ├── src/                        # Core Clinical Intelligence Layer
 │   ├── data/                   
 │   │   ├── loader.py           # Handles clean data ingestion
@@ -196,7 +196,7 @@ heart_disease_ai/
 ### 1. Environment Initialization
 ```bash
 # Clone and enter directory
-cd heart_disease_ai
+cd CardioSense-AI
 # Create virtual environment
 python -m venv .venv
 source .venv/bin/activate
@@ -207,17 +207,17 @@ pip install -r requirements.txt
 ### 2. Execution Pathways
 **Run Training & Optimization Pipeline:**
 ```bash
-python heart_disease_ai/main.py
+python main.py
 ```
 
 **Launch Clinical Diagnostic Dashboard:**
 ```bash
-streamlit run heart_disease_ai/app/main.py
+streamlit run app/main.py
 ```
 
 **Launch Production API Service:**
 ```bash
-uvicorn heart_disease_ai.api.main:app --host 0.0.0.0 --port 8000
+uvicorn CardioSense-AI.api.main:app --host 0.0.0.0 --port 8000
 ```
 
 ---
