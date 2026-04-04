@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+venv/
+env/
+.venv/
+bin/
+lib/
+share/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# ML models and large datasets
+models/*.joblib
+models/*.h5
+models/*.pkl
+data/raw/*.csv
+data/processed/*.csv
+!data/raw/heart_disease_cleveland.csv
+
+# IDE
+.vscode/
+.idea/

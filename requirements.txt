@@ -1,0 +1,32 @@
+# Data Manipulation & Analysis
+pandas
+numpy
+scipy
+
+# Machine Learning
+scikit-learn
+xgboost
+joblib
+optuna
+
+# Explainability
+shap
+lime
+
+# Visualization
+matplotlib
+seaborn
+plotly
+
+# Web Application
+streamlit
+
+# Development
+ipykernel
+pytest
+python-dotenv
+fastapi
+uvicorn
+pydantic
+watchdog
+fpdf2
