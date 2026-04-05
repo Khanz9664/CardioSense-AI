@@ -1,4 +1,4 @@
-# System Architecture: CardioSense AI
+# System Architecture: CardioSense AI (v2.1.0)
 
 CardioSense AI is a multi-layered Clinical Decision Support System (CDSS) designed for high-performance cardiovascular risk assessment with a focus on trust, interpretability, and safety.
 
@@ -117,13 +117,30 @@ The **Risk Optimization Engine** moves beyond simple simulation to find the **Le
 
 ## 6. Explainability Layer (`src/explainability/`)
 
-We use **SHAP (SHapley Additive exPlanations)** to ensure every prediction is explainable.
-- **Local Explanations**: Waterfall plots showing exactly how each vital contributed to a specific patient's risk.
-- **Model Reasoning**: NLP-driven summarization of SHAP signals to provide a plain-text "Physician's Summary" of the AI's logic.
+We utilize a dual-engine interpretability layer to ensure every prediction is explainable from multiple mathematical perspectives:
+
+1.  **SHAP (SHapley Additive exPlanations)**: Provides globally consistent local risk attribution using game-theoretic Shapley values.
+    - **Local Explanations**: Waterfall plots showing exactly how each vital contributed to a specific patient's risk.
+2.  **LIME (Local Interpretable Model-agnostic Explanations)**: Provides a local "linear surrogate" that approximates the complex model around a specific patient's data point.
+    - **Sensitivity Analysis**: Reveals how small changes in patient vitals would affect the model's confidence, identifying the most "fragile" risk factors.
+
+- **Model Reasoning Layer**: NLP-driven summarization of both SHAP and LIME signals to provide a plain-text "Physician's Summary" of the AI's logic.
 
 ---
 
-## 7. Project Blueprint (Source Code Organization)
+## 7. Fairness-Aware Validation Pipeline
+
+To meet modern medical-legal standards for AI, the training pipeline includes a **Bias Audit Layer**:
+
+1.  **Slicing**: After the XGBoost model is optimized, the validation set is sliced into protected and clinical subgroups (e.g., `Sex`, `Age_LT45`, `Age_GT65`).
+2.  **Parity Metrics**: The system calculates specialized metrics for each slice:
+    *   **Recall Parity**: Ensuring high sensitivity across all groups to prevent false negatives in vulnerable populations.
+    *   **Precision Stability**: Monitoring for consistent diagnostic quality.
+3.  **Reporting**: These metrics are baked into the `model_metadata.json` and surfaced in the **System Integrity** dashboard for clinical transparency.
+
+---
+
+## 8. Project Blueprint (Source Code Organization)
 
 - `api/`: Production FastAPI gateway and middleware.
 - `app/`: Clinical Streamlit dashboard and UI logic.

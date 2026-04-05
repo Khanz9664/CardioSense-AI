@@ -9,12 +9,13 @@ class ClinicalReportGenerator(FPDF):
     Medical-Grade Clinical Decision Support (CDS) Report Generator.
     Aligned with ACC/AHA structural reporting standards.
     """
-    def __init__(self, logo_path="app/assets/logo.png"):
+    def __init__(self, logo_path="app/assets/logo.png", audit_hash=None):
         super().__init__()
         self.logo_path = logo_path
         self.set_auto_page_break(auto=True, margin=15)
         self.report_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         self.report_id = hashlib.md5(self.report_date.encode()).hexdigest()[:8].upper()
+        self.audit_hash = audit_hash or "N/A"
 
     def header(self):
         # Professional Clinical Header
@@ -35,10 +36,12 @@ class ClinicalReportGenerator(FPDF):
         
         # Meta Info
         self.set_font('helvetica', '', 9)
-        self.set_xy(160, 10)
+        self.set_xy(160, 8)
         self.cell(40, 5, f"REF ID: {self.report_id}", ln=True, align='R')
-        self.set_xy(160, 15)
+        self.set_xy(160, 13)
         self.cell(40, 5, f"DATE: {self.report_date.split(' ')[0]}", ln=True, align='R')
+        self.set_xy(160, 18)
+        self.cell(40, 5, f"AUDIT: {self.audit_hash[:8]}", ln=True, align='R')
         
         self.set_text_color(0)
         self.set_xy(10, 40)
@@ -88,13 +91,13 @@ class ClinicalReportGenerator(FPDF):
         self.cell(50, 7, "Digital Diagnostic Center", 0)
         self.ln(10)
 
-    def add_executive_summary(self, prediction, probability, reasoning, overrides):
+    def add_executive_summary(self, prediction, probability, reasoning, overrides, confidence=None):
         risk_pct = probability[0][1] * 100
         status = "CRITICAL (Crisis Alert)" if overrides else ("POSITIVE (High Risk)" if prediction[0] == 1 else "NEGATIVE (Low Risk)")
         color = (200, 0, 0) if (prediction[0] == 1 or overrides) else (40, 167, 69)
         
         self.set_draw_color(200, 200, 200)
-        self.rect(self.get_x(), self.get_y(), 190, 45)
+        self.rect(self.get_x(), self.get_y(), 190, 50)
         
         self.set_font('helvetica', 'B', 14)
         self.set_xy(15, self.get_y()+5)
@@ -108,6 +111,15 @@ class ClinicalReportGenerator(FPDF):
         self.set_font('helvetica', 'B', 14)
         self.cell(0, 8, f"{risk_pct:.1f}%", ln=True)
         
+        if confidence:
+            self.set_font('helvetica', 'B', 9)
+            self.set_x(15)
+            self.cell(50, 8, "Model Confidence Score:", 0)
+            conf_color = (0, 128, 0) if confidence['level'] == 'HIGH' else (252, 196, 25) if confidence['level'] == 'MODERATE' else (200, 0, 0)
+            self.set_text_color(*conf_color)
+            self.cell(0, 8, f"{confidence['level']} ({confidence['score']*100:.1f}%)", ln=True)
+            self.set_text_color(0)
+
         self.set_font('helvetica', 'B', 9)
         self.set_x(15)
         self.cell(0, 8, "Primary Clinical Logic Summary:", ln=True)
@@ -115,7 +127,7 @@ class ClinicalReportGenerator(FPDF):
         self.set_x(15)
         self.multi_cell(180, 6, reasoning)
         
-        self.set_xy(10, 105)
+        self.set_xy(10, 110)
 
     def add_clinical_assessment(self, input_df, assessment, overrides):
         self.section_title("1. Comprehensive Clinical Assessment")
@@ -161,13 +173,19 @@ class ClinicalReportGenerator(FPDF):
                 self.multi_cell(0, 5, f"- {o['reason']}")
             self.set_text_color(0)
 
-    def add_interpretability(self, shap_plot_path):
+    def add_interpretability(self, shap_plot_path, radar_plot_path=None):
         self.section_title("2. Machine Learning Attribution Analysis")
         self.set_font('helvetica', '', 10)
-        self.multi_cell(0, 6, "Internal model attribution scores using SHAP. This visualizes the clinical weight each factor contributed toward the final percentage.")
+        self.multi_cell(0, 6, "Internal model attribution scores using SHAP. This visualizes the clinical weight each factor contributed toward the final risk probability.")
         
         if os.path.exists(shap_plot_path):
             self.image(shap_plot_path, x=15, w=180)
+            self.ln(5)
+            
+        if radar_plot_path and os.path.exists(radar_plot_path):
+            self.set_font('helvetica', 'B', 10)
+            self.cell(0, 10, "Clinical Profile Optimization (Current vs Target)", ln=True)
+            self.image(radar_plot_path, x=45, w=120)
             self.ln(5)
 
     def add_intervention_roadmap(self, opt_results, roadmap=None):
@@ -231,12 +249,12 @@ class ClinicalReportGenerator(FPDF):
         self.cell(50)
         self.cell(70, 5, "Date / Timestamp", 0, 0, 'C')
 
-    def generate_report(self, input_df, prediction, probability, shap_plot_path, recs, reasoning=None, overrides=None, assessment=None, opt_results=None, roadmap=None, observations=None):
+    def generate_report(self, input_df, prediction, probability, shap_plot_path, recs, reasoning=None, overrides=None, assessment=None, opt_results=None, roadmap=None, observations=None, confidence=None, radar_plot_path=None):
         self.add_page()
         self.add_demographics()
-        self.add_executive_summary(prediction, probability, reasoning, overrides)
+        self.add_executive_summary(prediction, probability, reasoning, overrides, confidence)
         self.add_clinical_assessment(input_df, assessment, overrides)
-        self.add_interpretability(shap_plot_path)
+        self.add_interpretability(shap_plot_path, radar_plot_path)
         self.add_intervention_roadmap(opt_results, roadmap)
         self.add_recommendations(recs)
         if observations:

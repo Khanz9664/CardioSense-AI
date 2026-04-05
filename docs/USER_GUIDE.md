@@ -1,4 +1,4 @@
-# Clinical User Guide: CardioSense AI
+# Clinical User Guide: CardioSense AI (v2.1.0)
 
 CardioSense AI facilitates advanced cardiovascular decision-making through an interactive dashboard and automated clinical reporting.
 
@@ -8,13 +8,11 @@ CardioSense AI facilitates advanced cardiovascular decision-making through an in
 
 The CardioSense AI dashboard provides a comprehensive medical interface for risk assessment.
 
-````carousel
-![Patient Risk Summary](../app/assets/App_Screenshots/1.png)
-<!-- slide -->
-![Model Reasoning Summary](../app/assets/App_Screenshots/2.png)
-<!-- slide -->
-![Risk Optimization Radar](../app/assets/App_Screenshots/6.png)
-````
+<p align="center">
+  <img src="../app/assets/App_Screenshots/1.png" width="200"/>
+  <img src="../app/assets/App_Screenshots/2.png" width="200"/>
+  <img src="../app/assets/App_Screenshots/6.png" width="200"/>
+</p>
 
 ### Patient Inputs & Risk Pulse
 - **Sidebar**: Input traditional cardiovascular risk factors (Age, BP, Cholesterol, etc.).
@@ -28,10 +26,10 @@ The CardioSense AI dashboard provides a comprehensive medical interface for risk
 ### Diagnosis & Benchmarks
 Analyze the **underlying drivers** of the patient's risk.
 
-![Clinical Driver Analysis](../app/assets/App_Screenshots/3.png)
 ![Actionable LIME Insights](../app/assets/App_Screenshots/4.png)
 
 - **SHAP Waterfall Analysis**: Visualizes exactly how many percentage points each vital contributed to the overall risk. Red bars indicate increased risk; blue bars indicate protective factors.
+- **LIME Linear Surrogates**: Provides a "local linear" view of the model's decision. It shows which features are most sensitive for that specific patient, helping clinicians identify the most fragile risk factors.
 - **Patient Benchmarking**: Compare your patient's vitals against the **Healthy Median**.
 
 ### Risk Optimization Engine (Least Effort Path)
@@ -56,13 +54,36 @@ Understand population-level data drivers.
 
 - View feature importance across the entire dataset to see which factors strongest drive risk globally.
 
-### System Integrity
-Audit the engine's reliability.
-
-![Model Metrics and Parameters](../app/assets/App_Screenshots/10.png)
-![Audit & Fairness](../app/assets/App_Screenshots/11.png)
-
 - Review **Accuracy**, **ROC-AUC**, and the **Confusion Matrix** to ensure clinical validity.
+
+---
+
+## 4. Fairness & Equitable Care
+
+CardioSense AI is audited for **Equitable Healthcare** to ensure that the AI model performs reliably across all patient demographics, avoiding disparate clinical impact.
+
+![Bias and Fairness Assessment](../app/assets/App_Screenshots/11.png)
+
+- **Subgroup Analysis**: The system evaluates performance (Accuracy, Recall, F1) across Gender (Male/Female) and Age (Young/Middle/Senior) cohorts.
+- **Equitable Care Parity Check**: A critical clinical metric. We prioritize high **Recall (Sensitivity)** in historically marginalized or vulnerable subgroups (e.g., Female and Senior populations) to ensure no high-risk patient is missed due to algorithmic bias.
+
+---
+
+## 5. Medical Safety Guardrails
+
+The engine implements a **multi-layered safety framework** to prevent AI hallucination in high-risk scenarios.
+
+### Clinical Overrides (ACC/AHA Alignment)
+The system will automatically escalate risk to **POSITIVE** if critical life-safety thresholds are breached:
+- **Hypertensive Crisis**: Systolic BP >= 180 mmHg.
+- **Multivessel Disease**: Number of major vessels (ca) >= 2.
+- **Ischemic Severity**: ST depression (oldpeak) > 3.0.
+
+### Entropy-Based Confidence
+Every prediction includes a **Confidence Gauge** (1.0 - H(p)):
+- **HIGH**: The AI has a clear, focused statistical rationale.
+- **MODERATE**: The prediction carries aleatoric uncertainty; requires close physician review.
+- **LOW**: High entropy/ambiguity. The AI indicates a "Boundary Case."
 
 ---
 
@@ -83,9 +104,7 @@ After completing your assessment and running simulations, generate a professiona
 
 1.  Input clinician observations in the text field.
 2.  Click **"Download Clinical PDF Report"**.
-3.  The generated PDF includes:
-    - Patient Risk Summary.
-    - Full SHAP Waterfall Analysis.
-    - Clinical Benchmarking Table.
-    - Intervention Strategy projections.
-    - Confidence scores and safety integrity logs.
+    - **Clinical Radar Chart**: current vs. target patient profiles.
+    - **Intervention Roadmap**: prioritized treatment steps.
+    - **Entropy Confidence Score**: mathematical uncertainty rating.
+    - **Clinical Audit Hash**: cryptographic link for medical records.

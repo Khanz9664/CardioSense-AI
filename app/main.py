@@ -149,9 +149,52 @@ except Exception as e:
     st.error(f"System Offline: {e}. Please ensure the training pipeline has been completed.")
     st.stop()
 
-# --- PDF UTILITY ---
-def get_report_generator():
-    return ClinicalReportGenerator(logo_path=LOGO_PATH)
+# --- PDF UTILITIES ---
+def get_report_generator(audit_hash):
+    return ClinicalReportGenerator(logo_path=LOGO_PATH, audit_hash=audit_hash)
+
+def create_radar_chart_pdf(input_df, opt_result, simulator):
+    try:
+        r_feats = ['trestbps', 'chol', 'thalach', 'oldpeak']
+        labels = ['BP', 'Chol', 'MaxHR', 'ST-Dep']
+        
+        def norm_radar(val, feat):
+            # Same normalization logic as UI for consistency
+            b = simulator.hard_bounds[feat]
+            i = simulator.targets[feat]
+            bad = b[1] if feat != 'thalach' else b[0]
+            return abs(val - i) / abs(bad - i)
+
+        c_vals = [norm_radar(input_df[f].iloc[0], f) for f in r_feats]
+        o_vals = [norm_radar(opt_result['optimized_vitals'][f], f) for f in r_feats]
+        
+        # Close the loop
+        c_vals.append(c_vals[0])
+        o_vals.append(o_vals[0])
+        angles = np.linspace(0, 2*np.pi, len(labels), endpoint=False).tolist()
+        angles += angles[:1]
+        labels_loop = labels + [labels[0]]
+
+        fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+        ax.plot(angles, c_vals, color='#0056b3', linewidth=2, label='Current Patient')
+        ax.fill(angles, c_vals, color='#0056b3', alpha=0.25)
+        ax.plot(angles, o_vals, color='#28a745', linewidth=2, label='Clinical Target')
+        ax.fill(angles, o_vals, color='#28a745', alpha=0.25)
+        
+        ax.set_theta_offset(np.pi / 2)
+        ax.set_theta_direction(-1)
+        ax.set_thetagrids(np.degrees(angles[:-1]), labels)
+        ax.set_ylim(0, 1.2)
+        ax.set_yticklabels([])
+        ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
+        
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            plt.savefig(tmp.name, dpi=120, bbox_inches='tight', transparent=False)
+            plt.close(fig)
+            return tmp.name
+    except Exception as e:
+        st.error(f"Radar capture failed: {e}")
+        return None
 
 # --- SIDEBAR INPUTS ---
 with st.sidebar:
@@ -318,9 +361,15 @@ with top_col2:
         shap_plot_path = tmpfile.name
 
     # Check for simulation state
-    sim_results = st.session_state.get('last_sim', None)
+    opt_full = st.session_state.get('last_opt_full', None)
+    confidence = safety_engine.calculate_confidence(probability[0][1])
+    audit_hash = hashlib.md5(str(metadata).encode()).hexdigest()[:12].upper()
+    
+    radar_plot_path = None
+    if opt_full:
+        radar_plot_path = create_radar_chart_pdf(input_df, opt_full, simulator)
 
-    generator = get_report_generator()
+    generator = get_report_generator(audit_hash)
     pdf_output = generator.generate_report(
         input_df=input_df,
         prediction=prediction,
@@ -330,9 +379,11 @@ with top_col2:
         reasoning=reasoning_summary,
         overrides=clinical_overrides,
         assessment=clinical_assessment,
-        opt_results=st.session_state.get('last_opt_full', None),
+        opt_results=opt_full,
         roadmap=st.session_state.get('roadmap', None),
-        observations=clinical_notes
+        observations=clinical_notes,
+        confidence=confidence,
+        radar_plot_path=radar_plot_path
     )
     
     st.download_button(
@@ -343,9 +394,11 @@ with top_col2:
         width='stretch'
     )
     
-    # Cleanup temp file
+    # Cleanup temp files
     if os.path.exists(shap_plot_path):
         os.remove(shap_plot_path)
+    if radar_plot_path and os.path.exists(radar_plot_path):
+        os.remove(radar_plot_path)
 
 st.markdown("---")
 
@@ -519,7 +572,7 @@ with tab3:
     if global_fig:
         col_g1, col_g2, col_g3 = st.columns([1, 2, 1])
         with col_g2:
-            st.pyplot(global_fig, use_container_width=True)
+            st.pyplot(global_fig, width='stretch')
     else:
         st.warning("Global insights require pre-trained reference data.")
         
@@ -576,7 +629,7 @@ with tab3:
         
         col_c1, col_c2, col_c3 = st.columns([1, 2, 1])
         with col_c2:
-            st.pyplot(fig_corr, use_container_width=True)
+            st.pyplot(fig_corr, width='stretch')
 
 with tab4:
     col_acc, col_auc, col_ver, col_prauc = st.columns(4)

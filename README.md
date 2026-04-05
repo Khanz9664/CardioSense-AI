@@ -8,15 +8,12 @@
 
 ##  System Overview
 
-````carousel
-![Patient Risk Pulse](app/assets/App_Screenshots/1.png)
-<!-- slide -->
-![AI Reasoning Summary](app/assets/App_Screenshots/2.png)
-<!-- slide -->
-![Risk Optimization Radar](app/assets/App_Screenshots/6.png)
-<!-- slide -->
-![Clinical Metrics](app/assets/App_Screenshots/10.png)
-````
+<p align="center">
+  <img src="app/assets/App_Screenshots/1.png" width="200"/>
+  <img src="app/assets/App_Screenshots/2.png" width="200"/>
+  <img src="app/assets/App_Screenshots/6.png" width="200"/>
+  <img src="app/assets/App_Screenshots/10.png" width="200"/>
+</p>
 
 ---
 
@@ -28,7 +25,7 @@ Unlike traditional models, it combines:
 - **High-performance ML** (XGBoost + Optuna)
 - **Clinical Safety Engine** (ACC/AHA Guideline Overrides)
 - **Risk Optimization** (Least Effort Roadmap)
-- **Explainability** (SHAP Waterfall)
+- **Explainability** (SHAP and LIME)
 - **Clinical Reporting** (Professional PDF Generation)
 
 **Transforming prediction into actionable medical intelligence.**
@@ -50,10 +47,37 @@ For detailed technical and clinical information, please refer to the following m
 | Module | Description |
 | :--- | :--- |
 | **[System Architecture](docs/ARCHITECTURE.md)** | Deep dive into pipelines, safety engines, and optimization layers. |
+| **[Scientific Paper](docs/PAPER.md)** | Full methodology, experimental results, and mathematical foundations. |
 | **[Production API Guide](docs/API_GUIDE.md)** | Full FastAPI reference, logging, and auditability features. |
 | **[Clinical User Guide](docs/USER_GUIDE.md)** | Walkthrough of the dashboard, radar charts, and PDF reports. |
 | **[Development Manual](docs/DEVELOPMENT.md)** | Setup instructions, training pipelines, and testing strategy. |
 | **[Clinical Data Dictionary](docs/DATA_DICTIONARY.md)** | Explanation of the 13 clinical features and medical safety thresholds. |
+
+---
+
+## 🛠 Project Structure
+
+```text
+.
+├── api/                # Production FastAPI gateway and middleware
+├── app/                # Clinical Streamlit dashboard and UI logic
+│   └── assets/         # Project logos and application screenshots
+├── data/               # Clinical datasets (Raw, Processed, External)
+├── docs/               # Full documentation suite (Architecture, User Guide, Paper)
+├── models/             # Optimized model artifacts and clinical metadata
+├── reports/            # Reports of the application
+├── src/                # Core Intelligence Layer (Python packages)
+│   ├── data/           # Data ingestion and preprocessing pipelines
+│   ├── explainability/ # SHAP and LIME interpretability engines
+│   ├── models/         # Model training and inference wrappers
+│   ├── recommendation/ # Pattern-based medical advice generation
+│   ├── simulation/     # Risk Optimization and "Least Effort Path" 
+├── tests/              # Multi-modal test suite (Clinical, API, and Inference)
+├── logs/               # Logs of the application
+├── notebooks/          # Exploratory Data Analysis (EDA) and prototyping
+├── main.py             # Global training and optimization entry point
+└── requirements.txt    # Project dependencies and environment specification
+```
 
 ---
 

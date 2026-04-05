@@ -1,4 +1,4 @@
-# Development Guide: CardioSense AI
+# Development Guide: CardioSense AI (v2.1.0)
 
 This guide contains the necessary steps to set up, develop, and train CardioSense AI.
 
