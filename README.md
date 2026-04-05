@@ -1,6 +1,5 @@
-# CardioSense AI: Clinical Decision Support System
-
 [![CardioSense AI Clinical Pipeline](https://github.com/khanz9664/CardioSense-AI/actions/workflows/pipeline.yml/badge.svg)](https://github.com/khanz9664/CardioSense-AI/actions/workflows/pipeline.yml)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-red?style=for-the-badge&logo=streamlit)](https://cardio-sense-ai.streamlit.app/)
 
 <p align="center">
   <img src="app/assets/logo.png" width="200" alt="CardioSense AI Banner">
