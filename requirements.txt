@@ -24,7 +24,9 @@ streamlit
 # Development
 ipykernel
 pytest
+pytest-asyncio
 flake8
+httpx
 python-dotenv
 fastapi
 uvicorn
