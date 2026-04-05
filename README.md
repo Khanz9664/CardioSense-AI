@@ -54,10 +54,11 @@ For detailed technical and clinical information, please refer to the following m
 | **[Clinical User Guide](docs/USER_GUIDE.md)** | Walkthrough of the dashboard, radar charts, and PDF reports. |
 | **[Development Manual](docs/DEVELOPMENT.md)** | Setup instructions, training pipelines, and testing strategy. |
 | **[Clinical Data Dictionary](docs/DATA_DICTIONARY.md)** | Explanation of the 13 clinical features and medical safety thresholds. |
+| **[Streamlit Deployment](docs/DEPLOYMENT_GUIDE.md)** | Step-by-step guide to hosting the dashboard on Streamlit Cloud. |
 
 ---
 
-## 🛠 Project Structure
+##  Project Structure
 
 ```text
 .

@@ -16,14 +16,6 @@ share/
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
-# ML models and large datasets
-models/*.joblib
-models/*.h5
-models/*.pkl
-data/raw/*.csv
-data/processed/*.csv
-!data/raw/heart_disease_cleveland.csv
-
 # IDE
 .vscode/
 .idea/
