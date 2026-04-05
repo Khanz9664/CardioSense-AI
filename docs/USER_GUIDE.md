@@ -16,7 +16,7 @@ The CardioSense AI dashboard provides a comprehensive medical interface for risk
 
 ### Patient Inputs & Risk Pulse
 - **Sidebar**: Input traditional cardiovascular risk factors (Age, BP, Cholesterol, etc.).
-- **Reliability Score**: Active v2.1.0 engine (**90.16% Acc**) ensures production-grade stability.
+- **Reliability Score**: Active **XGB-O.1.2** engine (**90.16% Acc**) ensures production-grade stability.
 
 ![Patient Inputs](../app/assets/App_Screenshots/1.png)
 ![Risk Pulse Gauge](../app/assets/App_Screenshots/2.png)

@@ -1,4 +1,4 @@
-# System Architecture: CardioSense AI (v2.1.0)
+# System Architecture: CardioSense AI (XGB-O.1.2)
 
 CardioSense AI is a multi-layered Clinical Decision Support System (CDSS) designed for high-performance cardiovascular risk assessment with a focus on trust, interpretability, and safety.
 

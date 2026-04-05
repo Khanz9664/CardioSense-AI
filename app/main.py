@@ -40,6 +40,7 @@ from src.simulation.engine import HeartDiseaseSimulator
 from src.recommendation.engine import HeartDiseaseRecommender
 from src.utils.report_generator import ClinicalReportGenerator
 from src.utils.safety_engine import HeartDiseaseSafetyEngine
+from app.components.footer import render_footer
 
 # Page Config
 st.set_page_config(page_title="CardioSense AI | Clinical Decision Support", layout="wide", page_icon="❤️")
@@ -706,3 +707,6 @@ with tab4:
             'f1': '{:.1%}'
         }), width='stretch')
         st.info("**Equitable Care Parity Check:** Strong clinical models must maintain uniformly high Recall (True Positive Rate) across marginalized or vulnerable subgroups (e.g. Female and Senior populations) to avoid disparate treatment impact.")
+
+# --- FOOTER SECTION ---
+render_footer()

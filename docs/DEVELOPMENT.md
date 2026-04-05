@@ -86,7 +86,28 @@ Every push to the `main` branch triggers an automated **Clinical Decision Guardr
 
 ---
 
-## 6. Dependencies
+---
+ 
+ ## 6. Model Hyperparameter Blueprint (XGB-O.1.2)
+ 
+ The current production model was optimized using Optuna (100 trials) to achieve a clinical-grade accuracy of **90.16%** ($N=303$).
+ 
+ ```json
+ {
+   "n_estimators": 152,
+   "max_depth": 5,
+   "learning_rate": 0.018839840888145058,
+   "scale_pos_weight": 1.1685393258426966,
+   "random_state": 42,
+   "eval_metric": "logloss",
+   "subsample": 0.5911836813451903,
+   "colsample_bytree": 0.7410758805388522
+ }
+ ```
+ 
+ ---
+ 
+ ## 7. Dependencies
 
 - **Modeling**: `xgboost`, `scikit-learn`, `optuna`, `joblib`.
 - **Explainability**: `shap`, `matplotlib`, `seaborn`.

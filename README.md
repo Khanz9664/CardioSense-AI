@@ -123,8 +123,12 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 
 | Metric | Score | Professional Interpretation |
 | :--- | :--- | :--- |
+| **Model Version** | **XGB-O.1.2** | Optuna-optimized gradient boosted legacy engine. |
 | **Clinical Accuracy** | **90.16%** | Production-grade stability via robust preprocessing. |
 | **ROC-AUC Score** | **0.9524** | Exceptional ability to distinguish risk from health. |
+| **PR-AUC Score** | **0.9272** | High precision-recall balance for clinical flagging. |
+| **Recall (Sens.)** | **92.86%** | Minimized false negatives for patient safety. |
+| **F1 Score** | **0.8966** | Robust harmonic mean of precision and recall. |
 | **Safety Engine** | **Active** | Standard-of-care guardrails for critical vitals. |
 | **Auditability** | **Enabled** | Full request tracing and model state hashing. |
 
