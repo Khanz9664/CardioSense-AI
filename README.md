@@ -1,5 +1,7 @@
 # CardioSense AI: Clinical Decision Support System
 
+[![CardioSense AI Clinical Pipeline](https://github.com/khanz9664/CardioSense-AI/actions/workflows/pipeline.yml/badge.svg)](https://github.com/khanz9664/CardioSense-AI/actions/workflows/pipeline.yml)
+
 <p align="center">
   <img src="app/assets/logo.png" width="200" alt="CardioSense AI Banner">
 </p>
@@ -112,20 +114,17 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 
 ---
 
-##  Core Intelligence Modules
-
+- **The Preprocessing Pipeline**: Utilizes a Scikit-Learn `ColumnTransformer` with `StandardScaler` for vitals and `OneHotEncoder` for categorical clinical markers, ensuring training-inference consistency.
 - **The Safety & Trust Framework**: Implements ACC/AHA guideline overrides and out-of-distribution (OOD) monitoring.
 - **The Optimization Engine**: Calculates the "Least Effort Path" to risk reduction using clinical cost-weights.
-- **The Explainability Engine**: Powered by SHAP for local feature-level contributions and model reasoning.
+- **The Explainability Engine**: Powered by SHAP and LIME for local feature-level contributions and model reasoning.
 
 ---
 
-##  Technical Performance (v2.1.0)
-
 | Metric | Score | Professional Interpretation |
 | :--- | :--- | :--- |
-| **Clinical Accuracy** | **91.80%** | Optimized via Optuna for high stability. |
-| **ROC-AUC Score** | **0.9589** | Exceptional ability to distinguish risk from health. |
+| **Clinical Accuracy** | **90.16%** | Production-grade stability via robust preprocessing. |
+| **ROC-AUC Score** | **0.9524** | Exceptional ability to distinguish risk from health. |
 | **Safety Engine** | **Active** | Standard-of-care guardrails for critical vitals. |
 | **Auditability** | **Enabled** | Full request tracing and model state hashing. |
 

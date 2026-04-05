@@ -1,56 +1,82 @@
 import pandas as pd
+import numpy as np
 import joblib
 import os
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 class HeartDiseasePreprocessor:
     """
-    Unified preprocessing class to ensure consistency between training 
-    and real-time inference (API/UI).
+    Production-grade preprocessing pipeline using ColumnTransformer and Pipeline.
+    Ensures numerical scaling and categorical encoding consistency.
     """
     def __init__(self):
-        # Strictly define columns to ensure model input consistency
         self.feature_order = [
             'age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 
             'restecg', 'thalach', 'exang', 'oldpeak', 
             'slope', 'ca', 'thal'
         ]
+        self.num_features = ['age', 'trestbps', 'chol', 'thalach', 'oldpeak']
+        self.cat_features = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'slope', 'ca', 'thal']
+        
+        self.pipeline = self._build_pipeline()
         self.is_fitted = False
+        self.feature_names_out = None
+
+    def _build_pipeline(self):
+        """
+        Constructs the internal Scikit-Learn pipeline.
+        """
+        num_transformer = Pipeline(steps=[
+            ('scaler', StandardScaler())
+        ])
+
+        cat_transformer = Pipeline(steps=[
+            ('onehot', OneHotEncoder(drop='if_binary', handle_unknown='ignore', sparse_output=False))
+        ])
+
+        preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', num_transformer, self.num_features),
+                ('cat', cat_transformer, self.cat_features)
+            ],
+            remainder='passthrough'
+        )
+
+        return Pipeline(steps=[('preprocessor', preprocessor)])
 
     def fit(self, X: pd.DataFrame):
         """
-        Learns parameters from the training data (e.g., column names).
-        In this case, it primarily validates the schema.
+        Fits the robust pipeline to the training data.
         """
-        # Ensure all required features are present
-        missing = set(self.feature_order) - set(X.columns)
-        if missing:
-            raise ValueError(f"Missing required features: {missing}")
-        
+        self.pipeline.fit(X[self.feature_order])
         self.is_fitted = True
+        
+        # Capture the generated feature names after OneHotEncoding
+        ct = self.pipeline.named_steps['preprocessor']
+        self.feature_names_out = ct.get_feature_names_out()
         return self
 
     def transform(self, X: pd.DataFrame):
         """
-        Applies transformations and enforces feature ordering.
+        Applies the fitted pipeline transformations.
+        Returns a DataFrame with updated feature names.
         """
         if not self.is_fitted:
             raise ValueError("Preprocessor has not been fitted yet.")
         
-        # Select and reorder columns
         X_copy = X[self.feature_order].copy()
+        transformed_data = self.pipeline.transform(X_copy)
         
-        # Ensure correct numeric types
-        for col in self.feature_order:
-            X_copy[col] = pd.to_numeric(X_copy[col], errors='coerce')
-        
-        return X_copy
+        return pd.DataFrame(transformed_data, columns=self.feature_names_out, index=X.index)
 
     def save(self, path: str):
         """
-        Persists the preprocessor object to a joblib file.
+        Persists the entire preprocessor object.
         """
         joblib.dump(self, path)
-        print(f"Preprocessor saved to {path}")
+        print(f"Robust Preprocessor saved to {path}")
 
     @staticmethod
     def load(path: str):

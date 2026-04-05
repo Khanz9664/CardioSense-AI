@@ -49,19 +49,25 @@ graph TB
 
 ## 2. The Training & Optimization Pipeline
 
-We employ **XGBoost** as the primary engine, optimized via **Optuna** to ensure medical-grade accuracy.
+We employ **XGBoost** as the primary engine, optimized via **Optuna** and supported by a **Production Preprocessing Pipeline** to ensure medical-grade accuracy and inference stability.
+
+1.  **Robust Feature Engineering**:
+    *   **Numerical Normalization**: `StandardScaler` is applied to all continuous vitals (`age`, `trestbps`, `chol`, `thalach`, `oldpeak`) to prevent feature-dominance and ensure gradient stability.
+    *   **Categorical Encoding**: `OneHotEncoder(drop='if_binary')` converts clinical categorical markers (`sex`, `cp`, `fbs`, `restecg`, `exang`, `slope`, `ca`, `thal`) into a sparse, machine-readable format.
+2.  **Pipeline Orchestration**: The entire transformation is wrapped in a Scikit-Learn `Pipeline`. This ensures that the exact same mathematical shifts are applied during real-time inference as were used during training, eliminating training-serving skew.
 
 ```mermaid
 graph LR
-    A[(Raw Clinical Data)] --> B[Unified Preprocessing]
-    B --> C{Optuna Meta-Learner}
-    C --> D[XGBoost Hyper-Tuning]
-    D --> E[Cross-Validation]
-    E --> C
-    C --> F[Optimized Model / .joblib]
-    C --> G[Metadata & Metrics / .json]
+    A[(Raw Clinical Data)] --> B[ColumnTransformer]
+    B --> C[StandardScaler / OHE]
+    C --> D{Optuna Meta-Learner}
+    D --> E[XGBoost Hyper-Tuning]
+    E --> F[Cross-Validation]
+    F --> D
+    D --> G[Optimized Model / .joblib]
+    D --> H[Fitted Preprocessor / .joblib]
     
-    style C fill:#f9f,stroke:#333,stroke-width:2px
+    style D fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
 ---

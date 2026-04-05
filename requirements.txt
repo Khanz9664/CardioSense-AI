@@ -24,6 +24,7 @@ streamlit
 # Development
 ipykernel
 pytest
+flake8
 python-dotenv
 fastapi
 uvicorn

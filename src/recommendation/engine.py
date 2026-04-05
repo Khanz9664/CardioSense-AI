@@ -88,7 +88,7 @@ class HeartDiseaseRecommender:
             })
 
         # Augment with SHAP-based modifiable factors if not already covered by patterns
-        feature_names = data.columns.tolist()
+        feature_names = shap_values.feature_names
         patient_shap = shap_values.values[0]
         
         # modifiable factors to check if not covered
@@ -96,16 +96,25 @@ class HeartDiseaseRecommender:
         
         # Check SHAP for high impact features
         for feat, label in modifiable.items():
-            idx = feature_names.index(feat)
-            if patient_shap[idx] > 0.5: # Significant risk driver
-                # Check if already covered by a pattern
-                if not any(feat in p['id'] for p in patterns):
-                    recommendations.append({
-                        "title": f"Optimize {label}",
-                        "priority": "Moderate" if probability < 0.7 else "High",
-                        "rationale": f"SHAP analysis identifies {feat} as a top driver for this patient's risk profile.",
-                        "type": "Data-Driven"
-                    })
+            # Find the index in transformed features (handling num__ prefix)
+            try:
+                idx = -1
+                for i, name in enumerate(feature_names):
+                    if name == feat or name == f"num__{feat}":
+                        idx = i
+                        break
+                
+                if idx != -1 and patient_shap[idx] > 0.5: # Significant risk driver
+                    # Check if already covered by a pattern
+                    if not any(feat in p['id'] for p in patterns):
+                        recommendations.append({
+                            "title": f"Optimize {label}",
+                            "priority": "Moderate" if probability < 0.7 else "High",
+                            "rationale": f"SHAP analysis identifies {feat.upper()} as a top driver for this patient's risk profile.",
+                            "type": "Data-Driven"
+                        })
+            except Exception:
+                continue
 
         # Sort: High -> Moderate -> Low
         priority_map = {"High": 0, "Moderate": 1, "Low": 2}

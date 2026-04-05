@@ -98,18 +98,22 @@ def train_model(X: pd.DataFrame, y: pd.Series, tune=True):
     # Calculate calibration curve
     prob_true, prob_pred = calibration_curve(y_test, y_prob, n_bins=10)
     
-    # Calculate median healthy profile (Low Risk)
+    # Calculate median healthy profile (Low Risk) - based on RAW data for clinical relevance
     healthy_df = X[y == 0]
     median_healthy = healthy_df.median().to_dict()
     
-    # Save a small reference set for global SHAP
+    # Save a small reference set for global SHAP (TRANSFORMED)
     X_ref = X_train.sample(min(100, len(X_train)), random_state=42)
     
     # --- Feature Analysis ---
     corr_matrix = X_train.corr().to_dict()
-    # Compute VIF from inverse correlation matrix
-    inv_corr = np.linalg.inv(X_train.corr().values)
-    vif = pd.Series(np.diag(inv_corr), index=X_train.columns).to_dict()
+    
+    # Robust VIF calculation (handles potential singular matrix from OHE)
+    try:
+        inv_corr = np.linalg.pinv(X_train.corr().values) # Use pseudo-inverse for stability
+        vif = pd.Series(np.diag(inv_corr), index=X_train.columns).to_dict()
+    except Exception:
+        vif = {}
     
     # Extract Feature Importances from XGBoost
     importances = dict(zip(X_train.columns, base_model.feature_importances_.tolist()))
@@ -121,6 +125,10 @@ def train_model(X: pd.DataFrame, y: pd.Series, tune=True):
     # --- Explanation Consistency Check ---
     shap_explainer_local = shap.TreeExplainer(base_model)
     shap_vals_matrix = shap_explainer_local.shap_values(X_test)
+    # Handle potential 3D SHAP output for some versions
+    if len(shap_vals_matrix.shape) == 3:
+        shap_vals_matrix = shap_vals_matrix[:, :, 1]
+        
     shap_global_importances = np.abs(shap_vals_matrix).mean(axis=0)
     
     # Spearman rank correlation between Native XGB Importance and Global SHAP Importance
@@ -128,29 +136,34 @@ def train_model(X: pd.DataFrame, y: pd.Series, tune=True):
     
     # --- Bias & Fairness Assessment ---
     bias_metrics = {}
+    # Use X_test_raw to ensure we can filter by original clinical groups
+    X_test_raw_reset = X_test_raw.reset_index(drop=True)
+    y_test_reset = y_test.reset_index(drop=True)
+    y_pred_reset = pd.Series(y_pred)
+    
     # 1. Gender slices
     for gender_val, gender_name in [(0, "Female"), (1, "Male")]:
-        mask = X_test_raw["sex"] == gender_val
+        mask = X_test_raw_reset["sex"] == gender_val
         if mask.sum() > 0:
             bias_metrics[f"Gender_{gender_name}"] = {
                 "count": int(mask.sum()),
-                "accuracy": accuracy_score(y_test[mask], y_pred[mask]),
-                "recall": recall_score(y_test[mask], y_pred[mask], zero_division=0),
-                "f1": f1_score(y_test[mask], y_pred[mask], zero_division=0)
+                "accuracy": accuracy_score(y_test_reset[mask], y_pred_reset[mask]),
+                "recall": recall_score(y_test_reset[mask], y_pred_reset[mask], zero_division=0),
+                "f1": f1_score(y_test_reset[mask], y_pred_reset[mask], zero_division=0)
             }
             
     # 2. Age slices
     for age_group, mask in {
-        "Young_LT45": X_test_raw["age"] < 45,
-        "Middle_45_64": (X_test_raw["age"] >= 45) & (X_test_raw["age"] <= 64),
-        "Senior_GTE65": X_test_raw["age"] >= 65
+        "Young_LT45": X_test_raw_reset["age"] < 45,
+        "Middle_45_64": (X_test_raw_reset["age"] >= 45) & (X_test_raw_reset["age"] <= 64),
+        "Senior_GTE65": X_test_raw_reset["age"] >= 65
     }.items():
         if mask.sum() > 0:
             bias_metrics[f"Age_{age_group}"] = {
                 "count": int(mask.sum()),
-                "accuracy": accuracy_score(y_test[mask], y_pred[mask]),
-                "recall": recall_score(y_test[mask], y_pred[mask], zero_division=0),
-                "f1": f1_score(y_test[mask], y_pred[mask], zero_division=0)
+                "accuracy": accuracy_score(y_test_reset[mask], y_pred_reset[mask]),
+                "recall": recall_score(y_test_reset[mask], y_pred_reset[mask], zero_division=0),
+                "f1": f1_score(y_test_reset[mask], y_pred_reset[mask], zero_division=0)
             }
     
     metrics = {
@@ -170,14 +183,14 @@ def train_model(X: pd.DataFrame, y: pd.Series, tune=True):
             "vif": vif,
             "importance": importances,
             "permutation_importance": permutation_imp_dict,
-            "explanation_consistency": {"spearman_correlation": spearman_corr}
+            "explanation_consistency": {"spearman_correlation": float(spearman_corr)}
         },
         "bias_fairness": bias_metrics,
         "confusion_matrix": confusion_matrix(y_test, y_pred).tolist(),
         "best_params": best_params,
         "healthy_baseline": median_healthy,
         "X_reference": X_ref,
-        "preprocessor": preprocessor # Will be handled by the specialized save function
+        "preprocessor": preprocessor 
     }
     
     print(f"\nFinal Model Accuracy: {metrics['accuracy']:.4f}")

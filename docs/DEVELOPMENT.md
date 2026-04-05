@@ -34,9 +34,12 @@ python main.py
 ```
 This script will:
 1. Load raw data from `data/raw/`.
-2. Run the `Unified Preprocessor`.
+2. Run the **Robust Preprocessing Pipeline** (`ColumnTransformer` with `StandardScaler` and `OneHotEncoder`).
 3. Use **Optuna** to find the best hyperparameters.
-4. Save the artifacts (`.joblib`) and metadata (`.json`) to the `models/` directory.
+4. Save the artifacts:
+   - `models/heart_disease_model.joblib`: The optimized XGBoost learner.
+   - `models/preprocessor.joblib`: The fitted Scikit-Learn preprocessing pipeline.
+   - `models/model_metadata.json`: The clinical metrics and versioning data.
 
 ### Launching the Dashboard (Streamlit)
 ```bash
@@ -72,7 +75,18 @@ PYTHONPATH=. .venv/bin/pytest tests/
 
 ---
 
-## 5. Dependencies
+## 5. CI/CD & Automated Clinical Pipelines
+
+Every push to the `main` branch triggers an automated **Clinical Decision Guardrail Pipeline** via GitHub Actions:
+
+1.  **Job 1: Linting**: Ensures code quality and clinical-grade standards using `flake8`.
+2.  **Job 2: Clinical Testing**: Automates the full `pytest` suite across the Safety, API, and Simulator modules.
+3.  **Job 3: Model Ingest Audit**: Verifies that new clinical data patterns correctly traverse the `ColumnTransformer` preprocessing layer.
+4.  **Job 4: Docker Build**: Packages the FastAPI inference gateway into a production-ready container (`Dockerfile`) to ensure deployment portability.
+
+---
+
+## 6. Dependencies
 
 - **Modeling**: `xgboost`, `scikit-learn`, `optuna`, `joblib`.
 - **Explainability**: `shap`, `matplotlib`, `seaborn`.

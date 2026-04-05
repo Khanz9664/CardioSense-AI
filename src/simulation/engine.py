@@ -7,8 +7,9 @@ class HeartDiseaseSimulator:
     Class to simulate real-time patient data changes and assess impact on risk.
     Supports multi-variable baseline comparison, automated trajectories, and risk optimization.
     """
-    def __init__(self, model):
+    def __init__(self, model, preprocessor=None):
         self.model = model
+        self.preprocessor = preprocessor
         # Clinical targets for modifiable risk factors
         self.targets = {
             'chol': 200.0,      # mg/dl
@@ -33,6 +34,15 @@ class HeartDiseaseSimulator:
             'thalach': (60, 202),
             'oldpeak': (0.0, 6.0)
         }
+
+    def _get_risk_proba(self, data: pd.DataFrame):
+        """
+        Internal helper to get probability, applying preprocessing if available.
+        """
+        if self.preprocessor is not None:
+            processed = self.preprocessor.transform(data)
+            return self.model.predict_proba(processed)[:, 1][0]
+        return self.model.predict_proba(data)[:, 1][0]
 
     def apply_physiological_bounds(self, current_data: pd.DataFrame, updates: dict):
         """
@@ -63,14 +73,14 @@ class HeartDiseaseSimulator:
         safe_updates = self.apply_physiological_bounds(base_data, updates)
         
         sim_data = base_data.copy()
-        original_prob = self.model.predict_proba(base_data)[:, 1][0]
+        original_prob = self._get_risk_proba(base_data)
         
         # Apply all safe updates
         for feature, new_value in safe_updates.items():
             if feature in sim_data.columns:
                 sim_data[feature] = new_value
         
-        new_prob = self.model.predict_proba(sim_data)[:, 1][0]
+        new_prob = self._get_risk_proba(sim_data)
         delta = new_prob - original_prob
         
         return {
@@ -114,7 +124,7 @@ class HeartDiseaseSimulator:
         """
         target_prob = target_risk_pct / 100
         current_data = base_data.copy()
-        current_prob = self.model.predict_proba(current_data)[:, 1][0]
+        current_prob = self._get_risk_proba(current_data)
         modifiable = ['chol', 'trestbps', 'thalach', 'oldpeak']
         optimized_vitals = {feat: float(base_data[feat].iloc[0]) for feat in modifiable}
         
@@ -159,7 +169,12 @@ class HeartDiseaseSimulator:
                 
             # Commit the most efficient step
             optimized_vitals[best_feature] += (self.targets[best_feature] - optimized_vitals[best_feature]) * 0.10
-            current_prob = self.model.predict_proba(pd.DataFrame([base_data.iloc[0].to_dict() | optimized_vitals]))[:, 1][0]
+            
+            # Combine base data with optimized vitals for next iteration
+            commit_df = base_data.copy()
+            for k, v in optimized_vitals.items():
+                commit_df[k] = v
+            current_prob = self._get_risk_proba(commit_df)
             
             if current_prob <= target_prob:
                 break

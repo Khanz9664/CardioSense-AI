@@ -46,19 +46,18 @@ def test_trajectory_generation(simulator):
     assert trajectory[5]['prob'] < trajectory[0]['prob']
 
 def test_optimization_solver_convergence(simulator):
-    # Test that solver finds a path to reach a target risk
+    # Age 30 -> Max HR Cap = 190. Start with 180 to be safe.
     start_df = pd.DataFrame({
-        'age': [50], 'sex': [1], 'cp': [1], 'trestbps': [160], 'chol': [280], 'fbs': [0],
+        'age': [30], 'sex': [1], 'cp': [1], 'trestbps': [160], 'chol': [280], 'fbs': [0],
         'restecg': [0], 'thalach': [180], 'exang': [0], 'oldpeak': [2.0], 'ca': [0], 'thal': [3]
     })
     
-    # Target risk 50%. thalach=180 -> prob=180/220 = 0.81
-    # Optimization should decrease risk because clinical target for thalach is 180 (no reduction)
-    # Wait, simulator.targets['thalach'] = 180. If start is 180, it won't optimize thalach.
-    # I should change simulator.targets for the test or use a different feature.
-    simulator.targets['thalach'] = 110.0 
+    # In MockModel, reducing thalach reduces risk.
+    # Set target to 100 HR (prob = 100/220 = 0.45)
+    simulator.targets['thalach'] = 100.0 
     
     result = simulator.optimize_target_risk(start_df, target_risk_pct=50.0)
     
+    # Risk should decrease from 180/220 (~0.81)
     assert result['final_prob'] < 0.81
-    assert result['status'] in ["Success", "Max iterations reached (Partial)"]
+    assert result['status'] in ["Success", "Partial Target Reached"]

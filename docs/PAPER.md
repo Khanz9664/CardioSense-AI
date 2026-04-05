@@ -28,7 +28,14 @@ CardioSense AI addresses these gaps by implementing a **Post-Hoc Attribution Lay
 
 ## 2. Methodology & Mathematical Foundations
 
-### 2.1 The Core Intelligence Engine (XGBoost)
+### 2.1 Robust Preprocessing Pipeline
+To ensuring model stability and training-inference consistency, we implement a **Scikit-Learn Pipeline** architecture:
+1.  **Feature Normalization**: Numerical vitals ($x_{num} \in \{\text{age, trestbps, chol, thalach, oldpeak}\}$) are transformed using **Z-score normalization** (StandardScaler):
+    $$z = \frac{x - \mu}{\sigma}$$
+2.  **Categorical Encoding**: Nominal features ($x_{cat} \in \{\text{sex, cp, fbs, restecg, exang, slope, ca, thal}\}$) are transformed via **One-Hot Encoding (OHE)** to a sparse binary vector space.
+3.  **Pipeline Consistency**: The transformation parameters ($\mu, \sigma$) are fitted exclusively on the training set and persisted in the `preprocessor.joblib` artifact to eliminate data leakage.
+
+### 2.2 The Core Intelligence Engine (XGBoost)
 We utilize **eXtreme Gradient Boosting (XGBoost)**, which optimizes the following regularized objective function:
 
 $$\mathcal{L}(\phi) = \sum_i l(\hat{y}_i, y_i) + \sum_k \Omega(f_k)$$
@@ -75,10 +82,10 @@ CardioSense AI was validated on the **UCI Cleveland Heart Disease** dataset ($N=
 ### 3.2 Performance Metrics (v2.1.0)
 | Metric | Score | Clinical Interpretation |
 | :--- | :--- | :--- |
-| **Accuracy** | **91.80%** | Comprehensive Diagnostic Reliability |
-| **ROC-AUC** | **0.9589** | Exceptional Discrimination Power |
-| **Recall (Sensitivity)** | **96.43%** | Minimized False Negatives (Patient Safety) |
-| **Brier Score** | **0.0787** | High Calibration Integrity |
+| **Accuracy** | **90.16%** | Comprehensive Diagnostic Reliability |
+| **ROC-AUC** | **0.9524** | Exceptional Discrimination Power |
+| **Recall (Sensitivity)** | **92.86%** | Minimized False Negatives (Patient Safety) |
+| **Brier Score** | **0.0841** | High Calibration Integrity |
 
 ![Performance Summary](../app/assets/App_Screenshots/10.png)
 

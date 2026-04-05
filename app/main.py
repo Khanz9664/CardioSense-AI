@@ -131,8 +131,13 @@ PREPROCESSOR_PATH = os.path.join(BASE_DIR, "models", "preprocessor.joblib")
 def load_clinical_vFINAL_wow():
     X_REF_PATH = os.path.join(BASE_DIR, "models", "X_reference.joblib")
     predictor = HeartDiseasePredictor(MODEL_PATH, preprocessor_path=PREPROCESSOR_PATH)
-    explainer = HeartDiseaseExplainer(predictor.model, X_reference_path=X_REF_PATH)
-    simulator = HeartDiseaseSimulator(predictor.model)
+    # Explainer for SHAP/LIME
+    explainer = HeartDiseaseExplainer(
+        predictor.model, 
+        preprocessor=predictor.preprocessor, 
+        X_reference_path=X_REF_PATH
+    )
+    simulator = HeartDiseaseSimulator(predictor.model, preprocessor=predictor.preprocessor)
     recommender = HeartDiseaseRecommender()
     safety_engine = HeartDiseaseSafetyEngine()
     
@@ -337,7 +342,7 @@ with top_col2:
     shap_vals = explainer.get_explanations(input_df)
     
     # Auto-generate Model Reasoning Summary
-    reasoning_summary = explainer.get_reasoning_summary(shap_vals, input_df.columns)
+    reasoning_summary = explainer.get_reasoning_summary(shap_vals)
     
     st.info(f" **Model Reasoning Summary:** {reasoning_summary}")
     
@@ -347,12 +352,13 @@ with top_col2:
     # Prepare SHAP Waterfall Plot for PDF
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
         fig_tmp, ax_tmp = plt.subplots(figsize=(10, 6))
-        # Reconstruct clean Explanation to bypass SHAP internal library IndexErrors
+        # Use Transformed Data to match SHAP value dimensions
+        transformed_sample = predictor.preprocessor.transform(input_df)
         clean_exp_pdf = shap.Explanation(
             values=shap_vals.values[0],
             base_values=float(shap_vals.base_values[0]),
-            data=input_df.iloc[0].values,
-            feature_names=input_df.columns.tolist()
+            data=transformed_sample.iloc[0].values,
+            feature_names=transformed_sample.columns.tolist()
         )
         # Switch to Bar plot for local attribution (identical data, higher stability)
         shap.plots.bar(clean_exp_pdf, max_display=14, show=False)
@@ -417,12 +423,13 @@ with tab1:
         st.subheader("Local Interpretability (SHAP & LIME)")
         
         st.write("**SHAP Waterfall Base Contribution**")
-        # Reconstruct clean Explanation for UI stability
+        # Use Transformed Data to match SHAP value dimensions
+        transformed_sample = predictor.preprocessor.transform(input_df)
         clean_exp_ui = shap.Explanation(
             values=shap_vals.values[0],
             base_values=float(shap_vals.base_values[0]),
-            data=input_df.iloc[0].values,
-            feature_names=input_df.columns.tolist()
+            data=transformed_sample.iloc[0].values,
+            feature_names=transformed_sample.columns.tolist()
         )
         fig_wf, ax_wf = plt.subplots(figsize=(8, 6))
         # Switch to Bar plot for local attribution (identical data, higher stability)
@@ -581,22 +588,28 @@ with tab3:
         st.markdown("---")
         st.subheader("Algorithmic Feature Analysis")
         
-        fa_col1, fa_col2, fa_col3 = st.columns([1, 1, 1])
+        fa_col1, fa_col2, fa_col3 = st.columns([1.1, 1.1, 1])
         with fa_col1:
             st.write("**Native Feature Importance**")
+            # Show all features as requested
             imp_df = pd.DataFrame(list(fa['importance'].items()), columns=['Feature', 'Importance']).sort_values(by='Importance', ascending=True)
-            fig_imp, ax_imp = plt.subplots(figsize=(4.2, 2.8)) # 70% of 6x4
+            fig_imp, ax_imp = plt.subplots(figsize=(9, 8))
             ax_imp.barh(imp_df['Feature'], imp_df['Importance'], color='#339af0')
-            ax_imp.set_xlabel("Relative Importance")
+            ax_imp.set_xlabel("Relative Importance", fontsize=9)
+            ax_imp.tick_params(axis='y', labelsize=8)
+            ax_imp.tick_params(axis='x', labelsize=8)
             st.pyplot(fig_imp)
             
         with fa_col2:
             st.write("**Permutation Importance**")
             if 'permutation_importance' in fa:
+                # Show all features as requested
                 perm_df = pd.DataFrame(list(fa['permutation_importance'].items()), columns=['Feature', 'Importance']).sort_values(by='Importance', ascending=True)
-                fig_perm, ax_perm = plt.subplots(figsize=(6, 4))
+                fig_perm, ax_perm = plt.subplots(figsize=(9, 8))
                 ax_perm.barh(perm_df['Feature'], perm_df['Importance'], color='#fcc419')
-                ax_perm.set_xlabel("Mean AUC Drop")
+                ax_perm.set_xlabel("Mean AUC Drop", fontsize=9)
+                ax_perm.tick_params(axis='y', labelsize=8)
+                ax_perm.tick_params(axis='x', labelsize=8)
                 st.pyplot(fig_perm)
             else:
                 st.info("Permutation importance unavailable.")
@@ -622,12 +635,17 @@ with tab3:
             
         st.write("**Feature Correlation Heatmap**")
         corr_df = pd.DataFrame(fa['correlation'])
-        fig_corr, ax_corr = plt.subplots(figsize=(6, 3.5)) 
+        # Significant size expansion for readability
+        fig_corr, ax_corr = plt.subplots(figsize=(12, 7)) 
         sns.heatmap(corr_df, annot=True, fmt=".2f", cmap="vlag", center=0, ax=ax_corr, 
                     cbar_kws={'label': 'Pearson Correlation'},
-                    annot_kws={"size": 7}, linewidths=0.5)
+                    annot_kws={"size": 5}, linewidths=0.2)
         
-        col_c1, col_c2, col_c3 = st.columns([1, 2, 1])
+        # Rotate labels for better readability
+        plt.xticks(rotation=45, ha='right', fontsize=8)
+        plt.yticks(fontsize=8)
+        
+        col_c1, col_c2, col_c3 = st.columns([1, 4, 1]) # Expand display column
         with col_c2:
             st.pyplot(fig_corr, width='stretch')
 

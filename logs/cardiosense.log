@@ -14,3 +14,9 @@
 2026-04-05 11:29:05,207 | INFO     | [API-ENGINE] | REQ [777bc80f-2041-4c9c-92ee-0ea1b747dea8] | GET / | STATUS: 200 | DUR: 0.0072s
 2026-04-05 11:29:11,728 | INFO     | [API-ENGINE] | REQ [a0d7fc3d-effc-47c9-acfc-77849aff628b] | GET /docs | STATUS: 200 | DUR: 0.0038s
 2026-04-05 11:29:12,160 | INFO     | [API-ENGINE] | REQ [a09fb5b9-74bd-44c0-9247-1af426568e1b] | GET /openapi.json | STATUS: 200 | DUR: 0.0408s
+2026-04-05 13:09:42,154 | INFO     | [API-ENGINE] | Initializing Clinical Intelligence System...
+2026-04-05 13:09:42,205 | INFO     | [API-ENGINE] | Predictor model and preprocessor successfully loaded.
+2026-04-05 13:09:42,206 | INFO     | [API-ENGINE] | Clinical metadata loaded. Active Model Version: 1.0.0
+2026-04-05 13:09:50,111 | INFO     | [API-ENGINE] | REQ [ec267e25-8081-48f7-b051-b8ee26533b54] | GET / | STATUS: 200 | DUR: 0.0078s
+2026-04-05 13:09:55,442 | INFO     | [API-ENGINE] | REQ [228d5440-dbaf-46c1-852d-56631d55d746] | GET /docs | STATUS: 200 | DUR: 0.0005s
+2026-04-05 13:09:55,685 | INFO     | [API-ENGINE] | REQ [d2547436-9880-4b63-881e-657a03a2523f] | GET /openapi.json | STATUS: 200 | DUR: 0.0235s
