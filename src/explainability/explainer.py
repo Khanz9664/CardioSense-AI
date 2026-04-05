@@ -1,8 +1,10 @@
 import shap
 import pandas as pd
+import numpy as np
 import joblib
 import os
 import matplotlib.pyplot as plt
+from lime.lime_tabular import LimeTabularExplainer
 
 class HeartDiseaseExplainer:
     """
@@ -11,20 +13,84 @@ class HeartDiseaseExplainer:
     """
     def __init__(self, model, X_reference_path="models/X_reference.joblib"):
         self.model = model
+        
+        # Extract underlying tree model if wrapped in CalibratedClassifierCV
+        target_model = self.model
+        if hasattr(self.model, 'estimator'):
+            target_model = self.model.estimator
+            if hasattr(target_model, 'estimator'): # Unpack FrozenEstimator
+                target_model = target_model.estimator
+            elif hasattr(target_model, 'base_estimator'):
+                target_model = target_model.base_estimator
+        elif hasattr(self.model, 'base_estimator'):
+            target_model = self.model.base_estimator
+            
         # Use TreeExplainer for XGBoost models as it's optimized for tree-based algorithms
-        self.explainer = shap.TreeExplainer(self.model)
+        self.explainer = shap.TreeExplainer(target_model)
         
         # Load reference data for global explanations if available
         self.X_reference = None
         if os.path.exists(X_reference_path):
             self.X_reference = joblib.load(X_reference_path)
+            
+        # Initialize LIME Explainer if reference exists
+        self.lime_explainer = None
+        if self.X_reference is not None:
+            self.lime_explainer = LimeTabularExplainer(
+                training_data=self.X_reference.values,
+                feature_names=self.X_reference.columns.tolist(),
+                class_names=['Negative', 'Positive'],
+                mode='classification',
+                random_state=42
+            )
     
     def get_explanations(self, data: pd.DataFrame):
         """
         Computes SHAP values for the given data.
         """
         shap_values = self.explainer(data)
+        # Explicitly bind feature names to prevent plotting IndexError
+        if hasattr(data, 'columns'):
+            shap_values.feature_names = data.columns.tolist()
         return shap_values
+        
+    def get_lime_explanation(self, data_df: pd.DataFrame, num_features=10):
+        """
+        Generates a LIME local explanation for the first instance in the DataFrame.
+        """
+        if self.lime_explainer is None:
+            return None
+            
+        sample = data_df.values[0]
+        
+        # Predict function for LIME ensuring DataFrame wrapping (LIME passes 2D array)
+        def predict_fn(x):
+            df_x = pd.DataFrame(x, columns=self.X_reference.columns)
+            return self.model.predict_proba(df_x)
+            
+        exp = self.lime_explainer.explain_instance(
+            data_row=sample,
+            predict_fn=predict_fn,
+            num_features=num_features
+        )
+        return exp
+
+    def get_reasoning_summary(self, shap_values, feature_names):
+        """
+        Auto-generates a Model Reasoning Summary identifying top local driving factors.
+        """
+        vals = shap_values.values[0] 
+        abs_vals = np.abs(vals)
+        
+        sorted_indices = np.argsort(abs_vals)[::-1]
+        
+        top_factors = []
+        for i in sorted_indices[:3]:
+            feat = feature_names[i]
+            impact_dir = "increasing" if vals[i] > 0 else "decreasing"
+            top_factors.append(f"{feat.upper()} ({impact_dir})")
+            
+        return f"Top 3 factors contributing to risk: {', '.join(top_factors)}."
 
     def get_global_explanation(self):
         """
@@ -36,7 +102,7 @@ class HeartDiseaseExplainer:
         
         shap_values_global = self.explainer(self.X_reference)
         
-        fig, ax = plt.subplots(figsize=(10, 6))
+        fig, ax = plt.subplots(figsize=(7, 4.5))
         shap.summary_plot(shap_values_global, self.X_reference, show=False)
         # Avoid tight_layout() as it can trigger Matplotlib mathtext errors with SHAP labels
         # plt.tight_layout() 

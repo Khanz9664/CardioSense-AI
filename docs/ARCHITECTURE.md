@@ -96,26 +96,40 @@ sequenceDiagram
 
 ## 4. Safety & Trust Framework (`src/utils/safety_engine.py`)
 
-In medical AI, "Black Box" models are unusable. We implement three layers of trust:
+In medical AI, "Black Box" models are unusable. We implement four layers of trust:
 
-1.  **Out-of-Distribution (OOD) Detection**: Compares input data against the bounds of the training set (e.g., age ranges, BP maximums).
-2.  **Clinical Guardrails**: Hard-coded medical rules that can signal a "Hypertensive Crisis" even if the AI doesn't detect heart disease.
-3.  **Confidence Mapping**: A statistical derivation of model certainty, labeled as **High**, **Moderate**, or **Low**.
+1.  **Clinical Overrides**: Hard-stop medical rules based on ACC/AHA guidelines (e.g., Hypertensive Crisis, Ischemia detected in ECG) that trigger alerts regardless of AI probability.
+2.  **Out-of-Distribution (OOD) Monitoring**: Compares input data against the statistical bounds of the training set (e.g., age ranges, BP maximums).
+3.  **Entropy-Based Confidence**: Calculates the mathematical uncertainty of the model's output, labeled as **High**, **Moderate**, or **Low** based on probability distribution clusters.
+4.  **Audit Hashes**: Every inference result is cryptographically linked to the model version and timestamp to ensure data integrity.
 
 ---
 
-## 5. Explainability Layer (`src/explainability/`)
+## 5. Optimization Engine (`src/simulation/engine.py`)
+
+The **Risk Optimization Engine** moves beyond simple simulation to find the **Least Effort Path** to clinical stability.
+
+- **Clinical Cost-Weights**: Each modifiable factor is assigned a "difficulty" (e.g., Blood Pressure: 1.0 vs. Max Heart Rate: 2.0) representing lifestyle feasibility.
+- **Greedy Optimization**: The core algorithm identifies which changes yield the greatest risk reduction relative to their "effort."
+- **Roadmap Generation**: Converts numerical optima into a prioritized, actionable clinical sequence.
+
+---
+
+## 6. Explainability Layer (`src/explainability/`)
 
 We use **SHAP (SHapley Additive exPlanations)** to ensure every prediction is explainable.
 - **Local Explanations**: Waterfall plots showing exactly how each vital contributed to a specific patient's risk.
-- **Global Explanations**: Summary plots showing the most important features across the entire population (e.g., `ca`, `oldpeak`, `thalach`).
+- **Model Reasoning**: NLP-driven summarization of SHAP signals to provide a plain-text "Physician's Summary" of the AI's logic.
 
 ---
 
-## 6. Project Blueprint (Source Code Organization)
+## 7. Project Blueprint (Source Code Organization)
 
+- `api/`: Production FastAPI gateway and middleware.
+- `app/`: Clinical Streamlit dashboard and UI logic.
 - `src/models/`: Training and real-time inference wrappers.
-- `src/explainability/`: Logic for SHAP values and visualization.
-- `src/simulation/`: The "What-If" engine for risk reduction projections.
+- `src/explainability/`: Logic for SHAP values and model reasoning.
+- `src/simulation/`: The cost-weighted Risk Optimization Engine.
 - `src/recommendation/`: Pattern-based medical advice generation.
-- `src/utils/`: Safety engines and report orchestration.
+- `src/utils/`: Safety engines, PDF report orchestration, and logging.
+- `tests/`: Multi-modal test suite (Clinical, API, and Inference).

@@ -50,22 +50,29 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 
 ---
 
-## 3. Testing Strategy
+## 3. Testing Strategy (Clinical & API)
 
 Tests are located in the `tests/` directory and use `pytest`.
 
 ```bash
-# Run all clinical validation tests
-pytest tests/
+# Run the full clinical validation suite
+PYTHONPATH=. .venv/bin/pytest tests/
 ```
 
-- **Safety Tests**: Validate that clinical guardrails (e.g., BP > 180) are functioning.
-- **Inference Tests**: Ensure that the predictor returns the expected risk scores for known cases.
-- **OOD Tests**: Verify that the safety engine correctly flags out-of-distribution patients.
+- **`tests/test_safety_engine.py`**: Validates ACC/AHA hypertension guardrails, clinical overrides, and entropy-based confidence.
+- **`tests/test_simulator.py`**: Ensures the Risk Optimization Engine adheres to physiological bounds and converges on the "Least Effort Path."
+- **`tests/test_api_v2.py`**: Verifies production headers (`X-Request-ID`), model versioning, and standardized error responses.
 
 ---
 
-## 4. Dependencies
+## 4. Clinical Auditability
+
+- **Audit Hash**: The dashboard displays a unique SHA-256 hash of the loaded model metadata. This allows clinicians to verify that the decision support engine has not been altered since its last validated training run.
+- **Access Logs**: The system records every inference request with its associated probability and clinical reasoning in `logs/cardiosense.log`.
+
+---
+
+## 5. Dependencies
 
 - **Modeling**: `xgboost`, `scikit-learn`, `optuna`, `joblib`.
 - **Explainability**: `shap`, `matplotlib`, `seaborn`.

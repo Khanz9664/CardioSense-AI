@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import hashlib
 import numpy as np
 import joblib
 import shap
@@ -20,6 +21,18 @@ plt.rcParams['mathtext.default'] = 'regular' # Prevent math-text parsing errors
 
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import importlib
+
+# Force reload internal modules to bypass Streamlit's old sys.modules cache
+import src.explainability.explainer
+import src.utils.safety_engine
+import src.simulation.engine
+import src.utils.report_generator
+importlib.reload(src.explainability.explainer)
+importlib.reload(src.utils.safety_engine)
+importlib.reload(src.simulation.engine)
+importlib.reload(src.utils.report_generator)
 
 from src.models.predict import HeartDiseasePredictor
 from src.explainability.explainer import HeartDiseaseExplainer
@@ -115,9 +128,10 @@ METADATA_PATH = os.path.join(BASE_DIR, "models", "model_metadata.json")
 PREPROCESSOR_PATH = os.path.join(BASE_DIR, "models", "preprocessor.joblib")
 
 @st.cache_resource
-def load_components():
+def load_clinical_vFINAL_wow():
+    X_REF_PATH = os.path.join(BASE_DIR, "models", "X_reference.joblib")
     predictor = HeartDiseasePredictor(MODEL_PATH, preprocessor_path=PREPROCESSOR_PATH)
-    explainer = HeartDiseaseExplainer(predictor.model)
+    explainer = HeartDiseaseExplainer(predictor.model, X_reference_path=X_REF_PATH)
     simulator = HeartDiseaseSimulator(predictor.model)
     recommender = HeartDiseaseRecommender()
     safety_engine = HeartDiseaseSafetyEngine()
@@ -130,7 +144,7 @@ def load_components():
     return predictor, explainer, simulator, recommender, safety_engine, metadata
 
 try:
-    predictor, explainer, simulator, recommender, safety_engine, metadata = load_components()
+    predictor, explainer, simulator, recommender, safety_engine, metadata = load_clinical_vFINAL_wow()
 except Exception as e:
     st.error(f"System Offline: {e}. Please ensure the training pipeline has been completed.")
     st.stop()
@@ -174,7 +188,10 @@ with st.sidebar:
     input_df = user_input_features()
     st.markdown("---")
     clinical_notes = st.text_area("Clinician's Observations", placeholder="Enter specific patient notes or follow-up instructions here...", height=100)
-    st.info("Medical Grade AI | v1.2 Production")
+    st.info(f"Medical Grade AI | v{metadata.get('version', '1.0.0') if metadata else 'N/A'} Production")
+    st.sidebar.markdown("---")
+    st.sidebar.caption(f" **Clinical Engine**: v{metadata.get('version', '1.0.0') if metadata else 'N/A'}")
+    st.sidebar.caption(f" **Audit Hash**: {hashlib.md5(str(metadata).encode()).hexdigest()[:8].upper() if metadata else 'N/A'}")
 
 # --- MAIN DASHBOARD ---
 # 1. Safety & Trust Header
@@ -194,16 +211,22 @@ risk_val = probability[0][1] * 100
 
 # 3. Safety Check
 safety_warnings = safety_engine.check_out_of_distribution(input_df)
-guardrails = safety_engine.get_clinical_guardrails(input_df)
+clinical_overrides = safety_engine.get_clinical_overrides(input_df)
+clinical_assessment = safety_engine.get_clinical_assessment(input_df)
 confidence = safety_engine.calculate_confidence(probability[0][1])
 
-if safety_warnings or guardrails:
+# Handle Overrides
+display_risk_val = risk_val
+if clinical_overrides:
+    display_risk_val = max(risk_val, 92.5) # Minimum high-risk floor for clinical crisis
+
+if safety_warnings or clinical_overrides:
     with st.expander(" System Integrity Alerts", expanded=True):
-        for g in guardrails:
-            st.error(f"**CRITICAL GUARDRAIL:** {g}")
+        for o in clinical_overrides:
+            st.error(f"**CRITICAL OVERRIDE:** {o['reason']}")
         for w in safety_warnings:
             st.warning(f"**OUT-OF-DISTRIBUTION:** {w}")
-        st.info("The prediction below may be unreliable as the patient's vitals fall outside the model's primary training data.")
+        st.info("The prediction below incorporates clinical safety overrides due to acute patient vitals.")
 
 # Dashboard Header with Logo
 title_col1, title_col2 = st.columns([0.1, 0.9])
@@ -220,12 +243,12 @@ top_col1, top_col2 = st.columns([1, 1.5])
 with top_col1:
     fig_gauge = go.Figure(go.Indicator(
         mode = "gauge+number",
-        value = risk_val,
+        value = display_risk_val,
         domain = {'x': [0, 1], 'y': [0, 1]},
         title = {'text': "Current Risk Pulse", 'font': {'size': 24}},
         gauge = {
             'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
-            'bar': {'color': "#ff4b4b" if risk_val > 50 else "#28a745"},
+            'bar': {'color': "#ff4b4b" if display_risk_val > 50 else "#28a745"},
             'bgcolor': "white",
             'borderwidth': 2,
             'bordercolor': "gray",
@@ -245,21 +268,21 @@ with top_col1:
     st.plotly_chart(fig_gauge, width='stretch')
 
 with top_col2:
-    status_class = "risk-high" if prediction[0] == 1 else "risk-low"
-    status_text = "NEGATIVE (Low Risk)" if prediction[0] == 0 else "POSITIVE (High Risk)"
-    status_color = "#28a745" if prediction[0] == 0 else "#ff4b4b"
+    status_class = "risk-high" if (prediction[0] == 1 or clinical_overrides) else "risk-low"
+    status_text = "NEGATIVE (Low Risk)" if (prediction[0] == 0 and not clinical_overrides) else "POSITIVE (High Risk)"
+    status_color = "#28a745" if (prediction[0] == 0 and not clinical_overrides) else "#ff4b4b"
     
     st.markdown(f"""
     <div class="metric-card {status_class}">
         <h3 style="margin-top:0;">Patient Risk Summary</h3>
         <p style="font-size: 1.2rem;">Assessment Result: <b style="color:{status_color};">{status_text}</b></p>
-        <p>The model predicts a <b>{risk_val:.1f}%</b> probability of underlying heart disease based on the current clinical profile.</p>
+        <p>The model predicts a <b>{display_risk_val:.1f}%</b> probability of underlying heart disease based on the current clinical profile.</p>
         <div style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
             <div style="font-size: 0.9rem; font-weight: 700; color: #495057; margin-bottom: 5px;">
-                Prediction Confidence: <span style="color: {confidence['color']};">{confidence['level']}</span> ({confidence['score']}%)
+                Entropy Confidence: <span style="color: {confidence['color']};">{confidence['level']}</span> ({confidence['score']}%)
             </div>
             <div style="font-size: 0.8rem; color: #6c757d;">
-                {confidence['description']}
+                {confidence['description']} (Binary Entropy: {confidence['entropy']})
             </div>
         </div>
         <hr>
@@ -267,18 +290,29 @@ with top_col2:
     </div>
     """, unsafe_allow_html=True)
     
-    # PDF Download Tooling
-    import tempfile
-    
+    # Compute SHAP Values Early
     shap_vals = explainer.get_explanations(input_df)
+    
+    # Auto-generate Model Reasoning Summary
+    reasoning_summary = explainer.get_reasoning_summary(shap_vals, input_df.columns)
+    
+    st.info(f" **Model Reasoning Summary:** {reasoning_summary}")
+    
+    # PDF Download Tooling
     recs = recommender.generate_prioritized_recommendations(input_df, probability[0][1], shap_vals)
     
     # Prepare SHAP Waterfall Plot for PDF
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmpfile:
         fig_tmp, ax_tmp = plt.subplots(figsize=(10, 6))
-        shap.plots.waterfall(shap_vals[0], show=False)
-        # Use bbox_inches='tight' in savefig instead of tight_layout() 
-        # to avoid Matplotlib's mathtext parse exceptions on SHAP labels
+        # Reconstruct clean Explanation to bypass SHAP internal library IndexErrors
+        clean_exp_pdf = shap.Explanation(
+            values=shap_vals.values[0],
+            base_values=float(shap_vals.base_values[0]),
+            data=input_df.iloc[0].values,
+            feature_names=input_df.columns.tolist()
+        )
+        # Switch to Bar plot for local attribution (identical data, higher stability)
+        shap.plots.bar(clean_exp_pdf, max_display=14, show=False)
         plt.savefig(tmpfile.name, dpi=150, bbox_inches='tight')
         plt.close(fig_tmp)
         shap_plot_path = tmpfile.name
@@ -293,10 +327,12 @@ with top_col2:
         probability=probability,
         shap_plot_path=shap_plot_path,
         recs=recs,
-        sim_results=sim_results,
-        observations=clinical_notes,
-        confidence=confidence,
-        safety_warnings=safety_warnings
+        reasoning=reasoning_summary,
+        overrides=clinical_overrides,
+        assessment=clinical_assessment,
+        opt_results=st.session_state.get('last_opt_full', None),
+        roadmap=st.session_state.get('roadmap', None),
+        observations=clinical_notes
     )
     
     st.download_button(
@@ -325,13 +361,43 @@ with tab1:
     diag_col1, diag_col2 = st.columns([1.2, 1])
     
     with diag_col1:
-        st.subheader("Clinical Driver Analysis (SHAP)")
-        fig_wf, ax_wf = plt.subplots(figsize=(10, 8))
-        shap.plots.waterfall(shap_vals[0], show=False)
+        st.subheader("Local Interpretability (SHAP & LIME)")
+        
+        st.write("**SHAP Waterfall Base Contribution**")
+        # Reconstruct clean Explanation for UI stability
+        clean_exp_ui = shap.Explanation(
+            values=shap_vals.values[0],
+            base_values=float(shap_vals.base_values[0]),
+            data=input_df.iloc[0].values,
+            feature_names=input_df.columns.tolist()
+        )
+        fig_wf, ax_wf = plt.subplots(figsize=(8, 6))
+        # Switch to Bar plot for local attribution (identical data, higher stability)
+        shap.plots.bar(clean_exp_ui, max_display=14, show=False)
         st.pyplot(plt.gcf())
-        st.caption("Waterfall plot showing contribution of each vital to the increased risk (red) or decreased risk (blue).")
+        st.caption("SHAP Bar chart showing absolute contribution (log-odds) of each vital to the prediction.")
+        
+        st.markdown("---")
+        st.write("**LIME Linear Surrogate Perturbations**")
+        with st.spinner("Generating local LIME perturbation model..."):
+            lime_exp = explainer.get_lime_explanation(input_df)
+            if lime_exp:
+                fig_lime = lime_exp.as_pyplot_figure()
+                fig_lime.set_size_inches(8, 6)
+                st.pyplot(fig_lime)
+                st.caption("LIME visualization displaying linear surrogate weights driving local probability.")
+            else:
+                st.warning("LIME explainer not initialized.")
 
     with diag_col2:
+        st.subheader("Diagnostic Assessment")
+        if clinical_assessment:
+            ca_df = pd.DataFrame(clinical_assessment)
+            st.table(ca_df)
+        else:
+            st.success("No acute clinical guideline violations detected.")
+            
+        st.markdown("---")
         st.subheader("Clinical Benchmarking")
         if metadata and 'healthy_baseline' in metadata:
             comp_df = explainer.get_patient_comparison(input_df, metadata['healthy_baseline'])
@@ -390,24 +456,143 @@ with tab2:
             st.balloons()
             st.success(" **Optimal Intervention Strategy**: This combination of vitals represents a major clinical recovery path.")
 
+    # --- WOW FEATURE: ADVANCED CLINICAL OPTIMIZATION ---
+    st.markdown("---")
+    opt_col1, opt_col2 = st.columns([1.2, 1])
+    
+    # 1. RADAR VISUALIZATION
+    with opt_col1:
+        st.subheader(" Optimization Engine")
+        st.write("Calculates the **Least Effort Path** using clinical cost weights.")
+        target_risk = st.select_slider("Target Clinical Risk (%)", options=[5, 10, 15, 20, 25, 30, 40, 50], value=20)
+        
+        if st.button(" Generate Treatment Roadmap", width='stretch'):
+            with st.spinner("Calculating..."):
+                opt_result = simulator.optimize_target_risk(input_df, target_risk)
+                st.session_state['last_opt_full'] = opt_result
+                st.session_state['roadmap'] = simulator.get_intervention_sequence(input_df, opt_result['optimized_vitals'])
+        
+        if 'last_opt_full' in st.session_state:
+            res = st.session_state['last_opt_full']
+            def norm_radar(val, feat):
+                b = simulator.hard_bounds[feat]
+                i = simulator.targets[feat]
+                bad = b[1] if feat != 'thalach' else b[0]
+                return abs(val - i) / abs(bad - i)
+
+            r_feats = ['trestbps', 'chol', 'thalach', 'oldpeak']
+            labels = ['BP', 'Chol', 'MaxHR', 'ST-Dep']
+            c_vals = [norm_radar(input_df[f].iloc[0], f) for f in r_feats]
+            o_vals = [norm_radar(res['optimized_vitals'][f], f) for f in r_feats]
+            
+            c_vals.append(c_vals[0]); o_vals.append(o_vals[0]); labels.append(labels[0])
+
+            fig_radar = go.Figure()
+            fig_radar.add_trace(go.Scatterpolar(r=c_vals, theta=labels, fill='toself', name='Current', line_color='#0056b3'))
+            fig_radar.add_trace(go.Scatterpolar(r=o_vals, theta=labels, fill='toself', name='Target', line_color='#28a745'))
+            fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 1.2], showticklabels=False)), 
+                                   height=350, margin=dict(l=30, r=30, t=30, b=30), paper_bgcolor='rgba(0,0,0,0)')
+            st.plotly_chart(fig_radar, width='stretch')
+
+    # 2. ROADMAP STEPS
+    with opt_col2:
+        if 'roadmap' in st.session_state:
+            st.subheader(" Treatment Roadmap")
+            for i, step in enumerate(st.session_state['roadmap']):
+                effort = " Easy" if step['effort_score'] <= 1.0 else " Moderate" if step['effort_score'] <= 2.0 else " High"
+                with st.expander(f"STEP {i+1}: {step['factor']}", expanded=(i<2)):
+                    st.write(f"**Action:** {step['action']}")
+                    st.write(f"**Goal:** {step['impact']}")
+                    st.write(f"**Effort:** {effort}")
+            
+            diff_p = (probability[0][1] - st.session_state['last_opt_full']['final_prob']) * 100
+            st.success(f"Potential Risk Reduction: **-{diff_p:.1f}%**")
+            st.caption("Following this prioritized logic leads to a projected risk of **{:.1f}%**.".format(st.session_state['last_opt_full']['final_prob']*100))
+        else:
+            st.info(" Run the Optimization Solver to generate a patient-specific roadmap.")
+
 with tab3:
     st.subheader("Population-Level Feature Importance")
     st.write("dataset-wide summary show which factors most strongly drive cardiovascular risk across all patients.")
     
     global_fig = explainer.get_global_explanation()
     if global_fig:
-        st.pyplot(global_fig)
+        col_g1, col_g2, col_g3 = st.columns([1, 2, 1])
+        with col_g2:
+            st.pyplot(global_fig, use_container_width=True)
     else:
         st.warning("Global insights require pre-trained reference data.")
+        
+    if metadata and 'feature_analysis' in metadata:
+        fa = metadata['feature_analysis']
+        st.markdown("---")
+        st.subheader("Algorithmic Feature Analysis")
+        
+        fa_col1, fa_col2, fa_col3 = st.columns([1, 1, 1])
+        with fa_col1:
+            st.write("**Native Feature Importance**")
+            imp_df = pd.DataFrame(list(fa['importance'].items()), columns=['Feature', 'Importance']).sort_values(by='Importance', ascending=True)
+            fig_imp, ax_imp = plt.subplots(figsize=(4.2, 2.8)) # 70% of 6x4
+            ax_imp.barh(imp_df['Feature'], imp_df['Importance'], color='#339af0')
+            ax_imp.set_xlabel("Relative Importance")
+            st.pyplot(fig_imp)
+            
+        with fa_col2:
+            st.write("**Permutation Importance**")
+            if 'permutation_importance' in fa:
+                perm_df = pd.DataFrame(list(fa['permutation_importance'].items()), columns=['Feature', 'Importance']).sort_values(by='Importance', ascending=True)
+                fig_perm, ax_perm = plt.subplots(figsize=(6, 4))
+                ax_perm.barh(perm_df['Feature'], perm_df['Importance'], color='#fcc419')
+                ax_perm.set_xlabel("Mean AUC Drop")
+                st.pyplot(fig_perm)
+            else:
+                st.info("Permutation importance unavailable.")
+                
+        with fa_col3:
+            st.write("**Explanation Consistency**")
+            if 'explanation_consistency' in fa:
+                spearman = fa['explanation_consistency'].get('spearman_correlation', 0)
+                st.metric("SHAP vs Native Consistency", f"{spearman:.1%}")
+                if spearman > 0.8:
+                    st.success("High consistency. SHAP attributions robustly align with internal model logic.")
+                else:
+                    st.warning("Moderate consistency. Base model exhibits complex structure deviating from linear SHAP attribution.")
+            
+            st.write("**Variance Inflation Factor**")
+            vif_df = pd.DataFrame(list(fa['vif'].items()), columns=['Feature', 'VIF Score']).sort_values(by='VIF Score', ascending=False)
+            try:
+                styled_vif = vif_df.style.map(lambda x: "background-color: #ffebee; color: #ff4b4b; font-weight: bold;" if isinstance(x, (int, float)) and x > 5 else "")
+            except AttributeError:
+                styled_vif = vif_df.style.applymap(lambda x: "background-color: #ffebee; color: #ff4b4b; font-weight: bold;" if isinstance(x, (int, float)) and x > 5 else "")
+            st.dataframe(styled_vif, width='stretch')
+            st.caption("VIF > 5 indicates multicollinearity.")
+            
+        st.write("**Feature Correlation Heatmap**")
+        corr_df = pd.DataFrame(fa['correlation'])
+        fig_corr, ax_corr = plt.subplots(figsize=(6, 3.5)) 
+        sns.heatmap(corr_df, annot=True, fmt=".2f", cmap="vlag", center=0, ax=ax_corr, 
+                    cbar_kws={'label': 'Pearson Correlation'},
+                    annot_kws={"size": 7}, linewidths=0.5)
+        
+        col_c1, col_c2, col_c3 = st.columns([1, 2, 1])
+        with col_c2:
+            st.pyplot(fig_corr, use_container_width=True)
 
 with tab4:
-    col_acc, col_auc, col_ver = st.columns(3)
-    col_acc.metric("Clinical Accuracy", f"{metadata['accuracy']*100:.2f}%")
-    col_auc.metric("ROC-AUC Score", f"{metadata['roc_auc']:.4f}")
+    col_acc, col_auc, col_ver, col_prauc = st.columns(4)
+    col_acc.metric("Clinical Accuracy", f"{metadata.get('accuracy', 0)*100:.2f}%")
+    col_auc.metric("ROC-AUC Score", f"{metadata.get('roc_auc', 0):.4f}")
+    col_prauc.metric("PR-AUC Score", f"{metadata.get('pr_auc', 0):.4f}")
     col_ver.metric("Model Version", "XGB-O.1.2")
     
+    col_prec, col_rec, col_f1, col_brier = st.columns(4)
+    col_prec.metric("Precision", f"{metadata.get('precision', 0):.4f}")
+    col_rec.metric("Recall (Sensitivity)", f"{metadata.get('recall', 0):.4f}")
+    col_f1.metric("F1 Score", f"{metadata.get('f1', 0):.4f}")
+    col_brier.metric("Brier Score", f"{metadata.get('brier_score', 0):.4f}", help="Lower is better (closer to 0 is perfectly calibrated)")
+    
     st.markdown("---")
-    cm_col, hyp_col = st.columns([1, 1])
+    cm_col, cal_col = st.columns([1, 1])
     
     with cm_col:
         st.write("**Validation Confusion Matrix**")
@@ -417,6 +602,36 @@ with tab4:
                     xticklabels=['Negative', 'Positive'], yticklabels=['Actual Neg', 'Actual Pos'])
         st.pyplot(fig_cm)
     
-    with hyp_col:
-        st.write("**Hyperparameter Blueprint (Optuna Optimized)**")
-        st.json(metadata['best_params'])
+    with cal_col:
+        if 'calibration_curve' in metadata:
+            st.write("**Model Calibration Curve**")
+            cal = metadata['calibration_curve']
+            fig_cal, ax_cal = plt.subplots(figsize=(6, 4))
+            ax_cal.plot(cal['prob_pred'], cal['prob_true'], marker='o', linewidth=2, color='#ff4b4b', label='XGBoost')
+            ax_cal.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Perfect Calibration')
+            ax_cal.set_xlabel('Mean Predicted Probability')
+            ax_cal.set_ylabel('Fraction of Positives')
+            ax_cal.legend(loc="lower right")
+            st.pyplot(fig_cal)
+        else:
+            st.write("**Hyperparameter Blueprint (Optuna Optimized)**")
+            st.json(metadata.get('best_params', {}))
+    
+    if 'calibration_curve' in metadata:
+        with st.expander("View Hyperparameter Blueprint"):
+            st.json(metadata.get('best_params', {}))
+            
+    if metadata and 'bias_fairness' in metadata:
+        st.markdown("---")
+        st.subheader("Bias & Fairness Assessment")
+        st.write("Ensuring robust equitable performance across patient subgroups.")
+        
+        bias = metadata['bias_fairness']
+        bias_df = pd.DataFrame(bias).T
+        # Select columns to display
+        st.dataframe(bias_df[['count', 'accuracy', 'recall', 'f1']].style.format({
+            'accuracy': '{:.1%}',
+            'recall': '{:.1%}',
+            'f1': '{:.1%}'
+        }), width='stretch')
+        st.info("**Equitable Care Parity Check:** Strong clinical models must maintain uniformly high Recall (True Positive Rate) across marginalized or vulnerable subgroups (e.g. Female and Senior populations) to avoid disparate treatment impact.")

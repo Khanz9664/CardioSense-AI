@@ -6,15 +6,30 @@
 
 ---
 
+##  System Overview
+
+````carousel
+![Patient Risk Pulse](app/assets/App_Screenshots/1.png)
+<!-- slide -->
+![AI Reasoning Summary](app/assets/App_Screenshots/2.png)
+<!-- slide -->
+![Risk Optimization Radar](app/assets/App_Screenshots/6.png)
+<!-- slide -->
+![Clinical Metrics](app/assets/App_Screenshots/10.png)
+````
+
+---
+
 ##  Elevator Pitch
 
 CardioSense AI is an explainable AI-powered cardiovascular decision support system that not only predicts heart disease risk but also explains the reasoning behind predictions and simulates how lifestyle changes can reduce that risk.
 
 Unlike traditional models, it combines:
 - **High-performance ML** (XGBoost + Optuna)
-- **Explainability** (SHAP)
-- **Real-time simulation**
-- **Clinical recommendations**
+- **Clinical Safety Engine** (ACC/AHA Guideline Overrides)
+- **Risk Optimization** (Least Effort Roadmap)
+- **Explainability** (SHAP Waterfall)
+- **Clinical Reporting** (Professional PDF Generation)
 
 **Transforming prediction into actionable medical intelligence.**
 
@@ -24,7 +39,7 @@ Unlike traditional models, it combines:
 
 Cardiovascular disease is the world's leading killer, yet clinical adoption of AI is hampered by the "Black Box" problem. Most models provide a risk score without an explanation, leaving clinicians unable to trust or validate the AI's "intuition."
 
-**CardioSense AI** is a professional **Clinical Decision Support System (CDSS)** designed to bridge this gap. By combining high-performance machine learning with state-of-the-art explainability and preventive simulation, it transforms raw data into trustable, actionable medical intelligence.
+**CardioSense AI** is a professional **Clinical Decision Support System (CDSS)** designed to bridge this gap. By combining high-performance machine learning with state-of-the-art explainability, clinical guardrails, and preventive simulation, it transforms raw data into trustable, actionable medical intelligence.
 
 ---
 
@@ -34,9 +49,9 @@ For detailed technical and clinical information, please refer to the following m
 
 | Module | Description |
 | :--- | :--- |
-| **[System Architecture](docs/ARCHITECTURE.md)** | Deep dive into pipelines, safety engines, and component interactions. |
-| **[Production API Guide](docs/API_GUIDE.md)** | Full FastAPI reference, schemas, and integration examples. |
-| **[Clinical User Guide](docs/USER_GUIDE.md)** | Walkthrough of the dashboard and clinical PDF report interpretation. |
+| **[System Architecture](docs/ARCHITECTURE.md)** | Deep dive into pipelines, safety engines, and optimization layers. |
+| **[Production API Guide](docs/API_GUIDE.md)** | Full FastAPI reference, logging, and auditability features. |
+| **[Clinical User Guide](docs/USER_GUIDE.md)** | Walkthrough of the dashboard, radar charts, and PDF reports. |
 | **[Development Manual](docs/DEVELOPMENT.md)** | Setup instructions, training pipelines, and testing strategy. |
 | **[Clinical Data Dictionary](docs/DATA_DICTIONARY.md)** | Explanation of the 13 clinical features and medical safety thresholds. |
 
@@ -75,19 +90,20 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 
 ##  Core Intelligence Modules
 
-- **The Trust & Safety Framework**: Implements OOD detection and clinical guardrails.
-- **The Explainability Engine**: Powered by SHAP for local feature-level contributions.
-- **The Preventive Simulation Engine**: Moves from "Reactive" to "Preventive" through "What-If" analysis.
+- **The Safety & Trust Framework**: Implements ACC/AHA guideline overrides and out-of-distribution (OOD) monitoring.
+- **The Optimization Engine**: Calculates the "Least Effort Path" to risk reduction using clinical cost-weights.
+- **The Explainability Engine**: Powered by SHAP for local feature-level contributions and model reasoning.
 
 ---
 
-##  Technical Performance
+##  Technical Performance (v2.1.0)
 
 | Metric | Score | Professional Interpretation |
 | :--- | :--- | :--- |
-| **Clinical Accuracy** | **90.16%** | Optimized via Optuna for high stability. |
-| **ROC-AUC Score** | **0.9418** | Exceptional ability to distinguish risk from health. |
-| **OOD Reliability** | **Active** | Built-in warnings for anomalous patient profiles. |
+| **Clinical Accuracy** | **91.80%** | Optimized via Optuna for high stability. |
+| **ROC-AUC Score** | **0.9589** | Exceptional ability to distinguish risk from health. |
+| **Safety Engine** | **Active** | Standard-of-care guardrails for critical vitals. |
+| **Auditability** | **Enabled** | Full request tracing and model state hashing. |
 
 ---
 

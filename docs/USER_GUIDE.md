@@ -9,18 +9,18 @@ CardioSense AI facilitates advanced cardiovascular decision-making through an in
 The CardioSense AI dashboard provides a comprehensive medical interface for risk assessment.
 
 ````carousel
-![Patient Vitals Input](../app/assets/App_Screenshots/01.png)
+![Patient Risk Summary](../app/assets/App_Screenshots/1.png)
 <!-- slide -->
-![Risk Summary & Gauge](../app/assets/App_Screenshots/02.png)
+![Model Reasoning Summary](../app/assets/App_Screenshots/2.png)
 <!-- slide -->
-![Diagnostic Analysis](../app/assets/App_Screenshots/03.png)
+![Risk Optimization Radar](../app/assets/App_Screenshots/6.png)
 ````
 
 ### Patient Inputs & Risk Pulse
 - **Sidebar**: Input traditional cardiovascular risk factors (Age, BP, Cholesterol, etc.).
 - **Risk Pulse Gauge**: Real-time visual indicator of heart disease probability.
-![Patient Inputs](../app/assets/App_Screenshots/01.png)
-![Risk Pulse Gauge](../app/assets/App_Screenshots/02.png)
+![Patient Inputs](../app/assets/App_Screenshots/1.png)
+![Risk Pulse Gauge](../app/assets/App_Screenshots/2.png)
 ---
 
 ## 2. Deep Dive Modules
@@ -28,30 +28,39 @@ The CardioSense AI dashboard provides a comprehensive medical interface for risk
 ### Diagnosis & Benchmarks
 Analyze the **underlying drivers** of the patient's risk.
 
-![Clinical Driver Analysis](../app/assets/App_Screenshots/03.png)
+![Clinical Driver Analysis](../app/assets/App_Screenshots/3.png)
+![Actionable LIME Insights](../app/assets/App_Screenshots/4.png)
 
 - **SHAP Waterfall Analysis**: Visualizes exactly how many percentage points each vital contributed to the overall risk. Red bars indicate increased risk; blue bars indicate protective factors.
 - **Patient Benchmarking**: Compare your patient's vitals against the **Healthy Median**.
 
-### Intervention Simulator (What-If?)
-Move from reactive to preventive care by simulating clinical interventions.
+### Risk Optimization Engine (Least Effort Path)
+Move beyond simple "What-If" analysis to an AI-driven clinical strategy.
 
-![Intervention Simulation Dashboard](../app/assets/App_Screenshots/04.png)
+![Intervention Simulation Dashboard](../app/assets/App_Screenshots/5.png)
+![Risk Optimization & Radar](../app/assets/App_Screenshots/6.png)
 
-- Adjust **Cholesterol**, **BP**, or **Max Heart Rate** to see projected risk reduction.
-- **Risk Delta**: Displays the percentage change in risk based on the intervention strategy.
+1. **Strategic Optimization**: Select a "Target Risk" percentage and run the solver.
+2. **Spider (Radar) Visualization**: 
+   - **Blue Shape**: The patient's high-risk profile.
+   - **Green Shape**: The AI-calculated "Path to Green."
+   - **Center (0.0)**: Represents ideal clinical benchmarks. A shrinking shape indicates successful risk reduction.
+3. **Treatment Roadmap**: A prioritized sequence of lifestyle and clinical actions (e.g., "Step 1: Blood Pressure Stabilization") ranked by their risk-reduction ROI relative to effort.
 
 ### Global Insights
 Understand population-level data drivers.
 
-![Population Importance](../app/assets/App_Screenshots/05.png)
+![Population Importance](../app/assets/App_Screenshots/7.png)
+![Feature Analysis](../app/assets/App_Screenshots/8.png)
+![Correlation Heatmap](../app/assets/App_Screenshots/9.png)
 
 - View feature importance across the entire dataset to see which factors strongest drive risk globally.
 
 ### System Integrity
 Audit the engine's reliability.
 
-![Model Metrics and Parameters](../app/assets/App_Screenshots/06.png)
+![Model Metrics and Parameters](../app/assets/App_Screenshots/10.png)
+![Audit & Fairness](../app/assets/App_Screenshots/11.png)
 
 - Review **Accuracy**, **ROC-AUC**, and the **Confusion Matrix** to ensure clinical validity.
 

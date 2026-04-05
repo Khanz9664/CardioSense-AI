@@ -3,8 +3,8 @@ import numpy as np
 
 class HeartDiseaseSafetyEngine:
     """
-    Utility class for data integrity checks and model confidence scoring.
-    Ensures that the AI is acting within clinical training bounds.
+    Advanced Medical Safety Engine for Heart Disease CDSS.
+    Integrates clinical guidelines, prediction overrides, and robust uncertainty estimation.
     """
     def __init__(self):
         # Training distribution bounds (from model_metadata.json analysis)
@@ -19,7 +19,6 @@ class HeartDiseaseSafetyEngine:
     def check_out_of_distribution(self, input_df: pd.DataFrame):
         """
         Checks if current inputs fall outside the known training distribution.
-        Returns a list of warnings or an empty list if safety checks pass.
         """
         warnings = []
         data = input_df.iloc[0].to_dict()
@@ -36,46 +35,92 @@ class HeartDiseaseSafetyEngine:
 
     def calculate_confidence(self, probability: float):
         """
-        Maps the raw model probability to a qualitative confidence level.
-        Confidence is highest when far from the 0.5 decision boundary.
+        Calculates confidence based on binary entropy.
+        Normalized confidence = 1 - H(p).
         """
-        # Distance from the threshold (0 to 0.5)
-        certainty = abs(probability - 0.5) * 2 # Normalized to 0 to 1
+        p = np.clip(probability, 1e-7, 1 - 1e-7)
+        entropy = - (p * np.log2(p) + (1 - p) * np.log2(1 - p))
         
-        if certainty > 0.7:
+        # Normalized confidence (0 to 1)
+        confidence_score = 1 - entropy
+        
+        if confidence_score > 0.8:
             level = "HIGH"
-            color = "#28a745" # Medical green
-            description = "The model is very certain about this assessment."
-        elif certainty > 0.3:
+            color = "#28a745"
+            description = "The model's probability distribution is sharply focused. Statistical certainty is robust."
+        elif confidence_score > 0.4:
             level = "MODERATE"
-            color = "#fcc419" # Clinical yellow
-            description = "The assessment is likely correct but requires clinical review."
+            color = "#fcc419"
+            description = "The prediction carries aleatoric uncertainty. Results are mathematically less distinct."
         else:
             level = "LOW"
-            color = "#ff4b4b" # Warning red
-            description = "Clinical ambiguity detected. The AI suggests manual scrutiny."
+            color = "#ff4b4b"
+            description = "High entropy (ambiguity). The AI cannot distinguish risk levels with high certainty."
             
         return {
             "level": level,
             "color": color,
             "description": description,
-            "score": round(certainty * 100, 1) # Probability mass certainty %
+            "score": round(confidence_score * 100, 1),
+            "entropy": round(entropy, 3)
         }
 
-    def get_clinical_guardrails(self, input_df: pd.DataFrame):
+    def get_clinical_assessment(self, input_df: pd.DataFrame):
         """
-        Detects critical clinical states that should overrule model predictions.
+        Analyzes vitals against AHA/ACC standards.
         """
-        hard_stops = []
+        results = []
         data = input_df.iloc[0].to_dict()
         
-        # Hypothetical clinical guardrails
-        if data.get('thalach', 100) < 50:
-            hard_stops.append("Critical Bradycardia (Max HR < 50). Urgent manual triage required.")
-        if data.get('trestbps', 120) > 200:
-            hard_stops.append("Hypertensive Crisis (BP > 200). Predictive model results may be secondary to acute risk.")
+        # Hypertension Analysis (AHA Guidelines)
+        bp = data.get('trestbps', 120)
+        if bp >= 180:
+            results.append({"factor": "Blood Pressure", "status": "HYPERTENSIVE CRISIS", "severity": "CRITICAL"})
+        elif bp >= 140:
+            results.append({"factor": "Blood Pressure", "status": "Stage 2 Hypertension", "severity": "HIGH"})
+        elif bp >= 130:
+            results.append({"factor": "Blood Pressure", "status": "Stage 1 Hypertension", "severity": "MODERATE"})
+        
+        # Cholesterol Analysis
+        chol = data.get('chol', 200)
+        if chol >= 240:
+            results.append({"factor": "Cholesterol", "status": "Hypercholesterolemia (>240 mg/dL)", "severity": "HIGH"})
+        elif chol >= 200:
+            results.append({"factor": "Cholesterol", "status": "Borderline High", "severity": "MODERATE"})
+        
+        # Fasting Blood Sugar
+        if data.get('fbs') == 1:
+            results.append({"factor": "Metabolic", "status": "Hyperglycemia (FBS > 120)", "severity": "MODERATE"})
             
-        return hard_stops
+        return results
+
+    def get_clinical_overrides(self, input_df: pd.DataFrame):
+        """
+        Clinical Risk Override System.
+        Escalates prediction if critical life-safety thresholds are breached.
+        """
+        overrides = []
+        data = input_df.iloc[0].to_dict()
+        
+        if data.get('trestbps', 120) >= 180:
+            overrides.append({
+                "reason": "Systolic BP >= 180 (Hypertensive Crisis). Immediate risk escalation.",
+                "forced_risk": 1
+            })
+            
+        if data.get('ca', 0) >= 2:
+            overrides.append({
+                "reason": "Multivessel Disease (CA >= 2 major vessels). Structural risk override.",
+                "forced_risk": 1
+            })
+            
+        if data.get('oldpeak', 0) > 3.0:
+            overrides.append({
+                "reason": "Severe Ischemic Depression (Oldpeak > 3.0). Clinical severity override.",
+                "forced_risk": 1
+            })
+            
+        return overrides
 
 if __name__ == "__main__":
     safety = HeartDiseaseSafetyEngine()

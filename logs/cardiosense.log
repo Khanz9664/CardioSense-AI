@@ -1,0 +1,16 @@
+2026-04-05 10:51:49,988 | INFO     | [API-ENGINE] | Initializing Clinical Intelligence System...
+2026-04-05 10:51:51,574 | INFO     | [API-ENGINE] | Predictor model and preprocessor successfully loaded.
+2026-04-05 10:51:51,574 | INFO     | [API-ENGINE] | Clinical metadata loaded. Active Model Version: 2.1.0
+2026-04-05 10:52:02,243 | INFO     | [API-ENGINE] | REQ [563fd62c-6786-4f07-8a70-2f93da6d41d1] | GET / | STATUS: 200 | DUR: 0.0105s
+2026-04-05 10:52:02,970 | INFO     | [API-ENGINE] | REQ [42cc8f51-4d3b-48f3-89ce-6c340c971c78] | GET /favicon.ico | STATUS: 404 | DUR: 0.0005s
+2026-04-05 10:52:51,334 | INFO     | [API-ENGINE] | REQ [c7b191d4-0c04-415c-a778-a3545d7d3367] | GET /predict | STATUS: 405 | DUR: 0.0006s
+2026-04-05 10:53:02,770 | INFO     | [API-ENGINE] | REQ [d7ea70da-e9b8-4fdd-a67a-39ddafd56d86] | GET /docs | STATUS: 200 | DUR: 0.0020s
+2026-04-05 10:53:03,557 | INFO     | [API-ENGINE] | REQ [a6bc490a-b353-4281-b1d0-f69a1656d561] | GET /openapi.json | STATUS: 200 | DUR: 0.0245s
+2026-04-05 10:53:53,181 | INFO     | [API-ENGINE] | REQ [N/A] | Inference Successful | Result: Positive (High Risk) (0.5691)
+2026-04-05 10:53:53,182 | INFO     | [API-ENGINE] | REQ [dd1ea4d9-e793-413f-b1e0-c22716146ca3] | POST /predict | STATUS: 200 | DUR: 0.0310s
+2026-04-05 11:28:57,161 | INFO     | [API-ENGINE] | Initializing Clinical Intelligence System...
+2026-04-05 11:28:58,884 | INFO     | [API-ENGINE] | Predictor model and preprocessor successfully loaded.
+2026-04-05 11:28:58,884 | INFO     | [API-ENGINE] | Clinical metadata loaded. Active Model Version: 2.1.0
+2026-04-05 11:29:05,207 | INFO     | [API-ENGINE] | REQ [777bc80f-2041-4c9c-92ee-0ea1b747dea8] | GET / | STATUS: 200 | DUR: 0.0072s
+2026-04-05 11:29:11,728 | INFO     | [API-ENGINE] | REQ [a0d7fc3d-effc-47c9-acfc-77849aff628b] | GET /docs | STATUS: 200 | DUR: 0.0038s
+2026-04-05 11:29:12,160 | INFO     | [API-ENGINE] | REQ [a09fb5b9-74bd-44c0-9247-1af426568e1b] | GET /openapi.json | STATUS: 200 | DUR: 0.0408s
