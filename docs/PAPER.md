@@ -2,7 +2,7 @@
 
 **Authors**: Shahid Ul Islam, CardioSense AI Development Team  
 **Date**: April 2026  
-**Clinical Validation**: v2.1.0/XGB-O.1.2  
+**Clinical Validation**: v2.4.0 (Enhanced Stability)  
 **Keywords**: Clinical Decision Support, Explainable AI (XAI), XGBoost, SHAP, LIME, Risk Optimization
 
 ---
@@ -11,7 +11,7 @@
 
 Cardiovascular diseases (CVDs) remain the leading cause of global mortality, necessitating advanced computational tools for early detection and intervention. While machine learning (ML) models have demonstrated high predictive accuracy, their clinical adoption is significantly hindered by the "Black Box" problem, where the underlying rationale for a prediction is inaccessible to the clinician. In this paper, we present **CardioSense AI**, a state-of-the-art **eXplainable Clinical Decision Support System (X-CDSS)** designed for precision risk assessment. 
 
-Our system integrates an optimized **Extreme Gradient Boosting (XGBoost)** architecture with multi-modal interpretability layers, including **SHAP (Shapley Additive Explanations)** and **LIME (Local Interpretable Model-agnostic Explanations)**. Furthermore, we introduce a novel **Risk Optimization Engine** that calculates the **Least Effort Path** to clinical stability based on patient-specific cost weights for lifestyle and medical interventions. Benchmarked on the UCI Cleveland dataset, CardioSense AI achieves a **Clinical Accuracy of 90.16%** and an **ROC-AUC of 0.9524**, while maintaining high **Recall (92.86%)** to ensure patient safety. Our results demonstrate that high performance and full interpretability are not mutually exclusive, providing a roadmap for modern medicine.
+Our system integrates an optimized **Extreme Gradient Boosting (XGBoost)** architecture with multi-modal interpretability layers, including **SHAP (Shapley Additive Explanations)** and **LIME (Local Interpretable Model-agnostic Explanations)**. Furthermore, we introduce a novel **Risk Optimization Engine** that calculates the **Least Effort Path** to clinical stability based on patient-specific cost weights for lifestyle and medical interventions. Benchmarked on the UCI Cleveland dataset, CardioSense AI achieves a **Clinical Accuracy of 88.52%** and an **ROC-AUC of 0.9621**, while maintaining high **Recall (92.86%)** to ensure patient safety. Our results demonstrate that high performance and full interpretability are not mutually exclusive, providing a roadmap for modern medicine.
 
 ---
 
@@ -118,7 +118,7 @@ We executed **50 trials** with **5-Fold Stratified Cross-Validation** to ensure 
 
 In cardiovascular medicine, a binary "High/Low" classification is insufficient. A clinician requires a **Risk Pulse** (probability) that is well-calibrated—meaning a 20% predicted risk should correspond to an actual 20% frequency of disease in a similar population. 
 
-Since raw XGBoost probabilities are often pushed away from 0 and 1 due to the boosting process, we implement **Sigmoid Calibration** (Platt Scaling) via `CalibratedClassifierCV`. This ensures that the generated risk scores have **High Calibration Integrity**, as verified by our **Brier Score of 0.0841**.
+Since raw XGBoost probabilities are often pushed away from 0 and 1 due to the boosting process, we implement **Sigmoid Calibration** (Platt Scaling) via `CalibratedClassifierCV`. This ensures that the generated risk scores have **High Calibration Integrity**, as verified by our **Brier Score of 0.0814**.
 
 ---
 
@@ -207,26 +207,24 @@ Every inference request is hashed and linked to the **Model Version (XGB-O.1.2)*
 
 ---
 
----
- 
- ## 9. Experimental Setup & Results
+## 9. Experimental Setup & Results
  
  ### 9.1 Evaluation Framework
  CardioSense AI was validated using a **Hold-Out Test Set (20%)** and **Stratified 5-Fold Cross-Validation** during the optimization phase. The performance metrics presented below represent the system's state after **Sigmoid Calibration** and **Target-Enriched Optuna Optimization**.
  
- ### 9.2 Clinical Performance Metrics (v2.1.0)
+ ### 9.2 Clinical Performance Metrics (v2.4.0)
  
  | Metric | Score | Professional Interpretation |
- | :--- | :--- | :--- |
- | **Model Identifier** | **XGB-O.1.2** | Legacy Optuna-boosted gradient ensemble. |
- | **Clinical Accuracy** | **90.16%** | High fidelity across all diagnostic classes. |
- | **ROC-AUC Score** | **0.9524** | Exceptional class discrimination power. |
- | **PR-AUC Score** | **0.9272** | Precise performance in unbalanced medical sets. |
- | **Recall (Sens.)** | **92.86%** | Critical safety metric (minimizing false negatives). |
- | **Precision** | **0.8667** | High diagnostic confirmation integrity. |
- | **F1-Score** | **0.8966** | Robust harmonic balance of precision and recall. |
- | **Brier Score** | **0.0841** | Strong probability calibration (closeness to truth). |
- | **XAI Consistency** | **84.60%** | High SHAP vs. Native model logic alignment. |
+| :--- | :--- | :--- |
+| **Model Identifier** | **v2.4.0** | Professional Optuna-calibrated clinical ensemble. |
+| **Clinical Accuracy** | **88.52%** | High fidelity across all diagnostic classes. |
+| **ROC-AUC Score** | **0.9621** | Exceptional class discrimination power. |
+| **PR-AUC Score** | **0.9553** | Precise performance in unbalanced medical sets. |
+| **Recall (Sens.)** | **92.86%** | Critical safety metric (minimizing false negatives). |
+| **Precision** | **0.8387** | High diagnostic confirmation integrity. |
+| **F1-Score** | **0.8814** | Robust harmonic balance of precision and recall. |
+| **Brier Score** | **0.0814** | Strong probability calibration (closeness to truth). |
+| **Test Coverage** | **63.00%** | Verified clinical logic via comprehensive unit testing. |
  
  ### 9.3 Bias, Fairness & Demographic Parity
  
@@ -287,6 +285,6 @@ Every inference request is hashed and linked to the **Model Version (XGB-O.1.2)*
  ---
  
  **Contact & Audit**:  
- Project: CardioSense AI (XGB-O.1.2)  
- Metadata Hash: `[Audit-Linked-SHA256]`  
- [Clinical Dashboard](https://khanz9664.github.io/portfolio)
+Project: CardioSense AI (v2.4.0)  
+Metadata Hash: `[Audit-Linked-SHA256]`  
+[Clinical Dashboard](https://khanz9664.github.io/portfolio)

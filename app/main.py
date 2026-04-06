@@ -15,6 +15,12 @@ import io
 import datetime
 import tempfile
 import matplotlib
+import warnings
+# Suppress benign Numpy/Stats warnings common in cold-start/zero-variance clinical simulations
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid value encountered in divide")
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="invalid value encountered in scalar divide")
+np.seterr(divide='ignore', invalid='ignore')
+
 matplotlib.use('Agg') # Ensure headless compatibility
 plt.rcParams['text.usetex'] = False
 plt.rcParams['mathtext.default'] = 'regular' # Prevent math-text parsing errors
@@ -40,7 +46,11 @@ from src.simulation.engine import HeartDiseaseSimulator
 from src.recommendation.engine import HeartDiseaseRecommender
 from src.utils.report_generator import ClinicalReportGenerator
 from src.utils.safety_engine import HeartDiseaseSafetyEngine
+from src.monitoring.engine import MonitoringEngine
 from app.components.footer import render_footer
+import streamlit.components.v1 as components
+import subprocess
+import sys
 
 # Page Config
 st.set_page_config(page_title="CardioSense AI | Clinical Decision Support", layout="wide", page_icon="❤️")
@@ -141,16 +151,19 @@ def load_clinical_vFINAL_wow():
     simulator = HeartDiseaseSimulator(predictor.model, preprocessor=predictor.preprocessor)
     recommender = HeartDiseaseRecommender()
     safety_engine = HeartDiseaseSafetyEngine()
-    
+    mon_engine = MonitoringEngine()
     metadata = None
     if os.path.exists(METADATA_PATH):
         with open(METADATA_PATH, 'r') as f:
             metadata = json.load(f)
             
-    return predictor, explainer, simulator, recommender, safety_engine, metadata
+    return predictor, explainer, simulator, recommender, safety_engine, metadata, mon_engine
 
 try:
-    predictor, explainer, simulator, recommender, safety_engine, metadata = load_clinical_vFINAL_wow()
+    predictor, explainer, simulator, recommender, safety_engine, metadata, mon_engine = load_clinical_vFINAL_wow()
+    # Store metadata in session state for dynamic UI updates
+    if 'metadata' not in st.session_state:
+        st.session_state.metadata = metadata
 except Exception as e:
     st.error(f"System Offline: {e}. Please ensure the training pipeline has been completed.")
     st.stop()
@@ -321,6 +334,19 @@ with top_col2:
     status_text = "NEGATIVE (Low Risk)" if (prediction[0] == 0 and not clinical_overrides) else "POSITIVE (High Risk)"
     status_color = "#28a745" if (prediction[0] == 0 and not clinical_overrides) else "#ff4b4b"
     
+    # --- Dynamic Reliability Metrics ---
+    # Extract version, accuracy, and optimization date directly from model artifacts
+    model_version = metadata.get('version', 'v2.4.0')
+    raw_acc = metadata.get('accuracy', 0.8852)
+    display_acc = f"{raw_acc * 100:.2f}%" if raw_acc <= 1.0 else f"{raw_acc:.2f}%"
+    
+    # Calculate Last Optimized date from the model file's modification timestamp
+    try:
+        model_mtime = os.path.getmtime(MODEL_PATH)
+        optimization_date = datetime.datetime.fromtimestamp(model_mtime).strftime('%B %Y')
+    except Exception:
+        optimization_date = "April 2026"  # Robust fallback
+        
     st.markdown(f"""
     <div class="metric-card {status_class}">
         <h3 style="margin-top:0;">Patient Risk Summary</h3>
@@ -335,7 +361,7 @@ with top_col2:
             </div>
         </div>
         <hr>
-        <small>Reliability Score: High (90.16% Acc) | Last Optimized: April 2026</small>
+        <small>Reliability Score: High ({display_acc} Acc) | Active Model: {model_version} | Last Optimized: {optimization_date}</small>
     </div>
     """, unsafe_allow_html=True)
     
@@ -410,11 +436,12 @@ with top_col2:
 st.markdown("---")
 
 # TABS FOR DEEP DIVE
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     " Diagnosis & Benchmarks", 
     " Intervention Simulator", 
     " Global Insights", 
-    " System Integrity"
+    " System Integrity",
+    " Clinical Monitoring"
 ])
 
 with tab1:
@@ -464,9 +491,6 @@ with tab1:
             comp_df = explainer.get_patient_comparison(input_df, metadata['healthy_baseline'])
             st.dataframe(comp_df.set_index('Metric'), width='stretch')
             st.info("Benchmarked against the 'Healthy Median' - the ideal cardiovascular profile derived from the population dataset.")
-        
-        st.markdown("---")
-        st.subheader("Targeted Action Plan")
         if recs:
             for r in recs:
                 badge_type = r['priority'].lower() + "-priority"
@@ -707,6 +731,94 @@ with tab4:
             'f1': '{:.1%}'
         }), width='stretch')
         st.info("**Equitable Care Parity Check:** Strong clinical models must maintain uniformly high Recall (True Positive Rate) across marginalized or vulnerable subgroups (e.g. Female and Senior populations) to avoid disparate treatment impact.")
+
+with tab5:
+    st.subheader("Clinical Reliability & Drift Monitoring")
+    st.write("This section tracks the engine's performance stability and environmental consistency over time.")
+    
+    with st.spinner("Analyzing production data logs..."):
+        drift_results = mon_engine.run_drift_analysis(window_size=200)
+        perf_results = mon_engine.run_performance_audit()
+        
+    mon_col1, mon_col2, mon_col3 = st.columns(3)
+    
+    if drift_results['status'] == "success":
+        drift_share = drift_results['drift_share']
+        status_color = "normal" if not drift_results['dataset_drift'] else "inverse"
+        
+        mon_col1.metric("Data Drift Share", f"{drift_share:.1%}", 
+                       delta=f"{drift_share:.1%} Target" if drift_share > 0.2 else None,
+                       delta_color=status_color)
+        
+        drift_label = " STABLE" if not drift_results['dataset_drift'] else "⚠️ DRIFTED"
+        mon_col2.metric("Environment Status", drift_label)
+        
+        # Concept Drift (Feedback based)
+        if perf_results['status'] == "success":
+            r_drop = perf_results['recall_drop']
+            mon_col3.metric("Recall Retention", f"{perf_results['current_recall']:.1%}", 
+                           delta=f"{-r_drop:+.1%}" if r_drop != 0 else None,
+                           delta_color="normal" if r_drop <= 0.05 else "inverse")
+        else:
+            mon_col3.info("Pending Feedback Data")
+            
+        # Visual Trends
+        hist_df = mon_engine.logger.get_recent_logs(limit=500)
+        if not hist_df.empty:
+            st.markdown("---")
+            row2_col1, row2_col2 = st.columns(2)
+            
+            with row2_col1:
+                st.write("**Prediction Probability Trend (Rolling)**")
+                # Ensure timestamp is datetime
+                hist_df['timestamp'] = pd.to_datetime(hist_df['timestamp'])
+                # Plotly rolling mean
+                hist_df = hist_df.sort_values('timestamp')
+                hist_df['rolling_prob'] = hist_df['probability'].rolling(window=min(20, len(hist_df))).mean()
+                
+                fig_trend = go.Figure()
+                fig_trend.add_trace(go.Scatter(x=hist_df['timestamp'], y=hist_df['probability'], mode='markers', name='Individual', marker=dict(color='gray', opacity=0.3)))
+                fig_trend.add_trace(go.Scatter(x=hist_df['timestamp'], y=hist_df['rolling_prob'], mode='lines', name='Rolling Avg', line=dict(color='#ff4b4b', width=3)))
+                fig_trend.update_layout(height=350, margin=dict(l=0, r=0, t=30, b=0))
+                st.plotly_chart(fig_trend, width='stretch')
+                
+            with row2_col2:
+                st.write("**Risk Distribution Shift**")
+                # Static vs Production Probability distribution
+                # Since we don't have static test scores easily, we just show production distribution
+                fig_dist = go.Figure()
+                fig_dist.add_trace(go.Histogram(x=hist_df['probability'], nbinsx=20, name='Production', marker_color='#339af0', opacity=0.75))
+                fig_dist.update_layout(height=350, margin=dict(l=0, r=0, t=30, b=0), barmode='overlay')
+                st.plotly_chart(fig_dist, width='stretch')
+        
+        # Deep Dive Report
+        st.markdown("---")
+        st.write("**Evidently AI Deep-Dive Report**")
+        if os.path.exists(drift_results['report_path']):
+            st.iframe(src=drift_results['report_path'], height=400, width='stretch')
+        else:
+            st.warning("Deep-dive report not generated.")
+            
+    else:
+        st.warning("Insufficient production data to perform drift analysis. The system requires at least a few clinical interactions to begin monitoring.")
+        st.info(" You can manually trigger inference requests or wait for real clinical usage to populate the monitoring logs.")
+
+    # Clinical Retraining Strategy (Oversight Mode)
+    st.markdown("---")
+    ret_col1, ret_col2 = st.columns([2, 1])
+    with ret_col1:
+        st.write("**Clinical Retraining Strategy**")
+        st.caption("Model re-calibration is triggered by significant data drift or performance decay.")
+    
+    with ret_col2:
+        if 'drift_results' in locals() and drift_results.get('status') == "success":
+            if drift_results.get('dataset_drift', False):
+                st.error(" DATA DRIFT DETECTED")
+                st.info("The clinical engine requires re-calibration. Please contact the System Administrator to trigger the retraining pipeline.")
+            else:
+                st.success(" Model version is stable.")
+        else:
+            st.info("Awaiting sufficient clinical data for drift assessment.")
 
 # --- FOOTER SECTION ---
 render_footer()

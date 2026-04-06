@@ -1,4 +1,4 @@
-# Development Guide: CardioSense AI (v2.1.0)
+# Development Guide: CardioSense AI (v2.4.0)
 
 This guide contains the necessary steps to set up, develop, and train CardioSense AI.
 
@@ -50,6 +50,7 @@ streamlit run app/main.py
 ```bash
 uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
+This gateway utilizes a modern **Lifespan** context manager for robust initialization of clinical artifacts and model telemetry.
 
 ---
 
@@ -59,12 +60,15 @@ Tests are located in the `tests/` directory and use `pytest`.
 
 ```bash
 # Run the full clinical validation suite
-PYTHONPATH=. .venv/bin/pytest tests/
+PYTHONPATH=. .venv/bin/pytest tests/ --cov=src --cov-report=term-missing
 ```
 
-- **`tests/test_safety_engine.py`**: Validates ACC/AHA hypertension guardrails, clinical overrides, and entropy-based confidence.
-- **`tests/test_simulator.py`**: Ensures the Risk Optimization Engine adheres to physiological bounds and converges on the "Least Effort Path."
-- **`tests/test_api_v2.py`**: Verifies production headers (`X-Request-ID`), model versioning, and standardized error responses.
+- **`tests/test_safety_engine.py`**: Validates ACC/AHA hypertension guardrails and clinical overrides.
+- **`tests/test_explainer.py`**: (NEW) Verifies SHAP and LIME interpretability for varied patient risk profiles.
+- **`tests/test_monitoring_engine.py`**: (NEW) Validates Data Drift and Performance Auditing logic.
+- **`tests/test_report_generator.py`**: (NEW) Ensures deterministic medical PDF generation of clinical results.
+- **`tests/test_simulator.py`**: Verifies the "Least Effort Path" optimization logic.
+- **`tests/test_api_v2.py`**: Verifies production headers, model versioning, and standardized error responses.
 
 ---
 
@@ -80,7 +84,7 @@ PYTHONPATH=. .venv/bin/pytest tests/
 Every push to the `main` branch triggers an automated **Clinical Decision Guardrail Pipeline** via GitHub Actions:
 
 1.  **Job 1: Linting**: Ensures code quality and clinical-grade standards using `flake8`.
-2.  **Job 2: Clinical Testing**: Automates the full `pytest` suite across the Safety, API, and Simulator modules.
+2.  **Job 2: Clinical Testing**: Automates the full `pytest` suite across the Safety, API, Monitoring, and Simulator modules.
 3.  **Job 3: Model Ingest Audit**: Verifies that new clinical data patterns correctly traverse the `ColumnTransformer` preprocessing layer.
 4.  **Job 4: Docker Build**: Packages the FastAPI inference gateway into a production-ready container (`Dockerfile`) to ensure deployment portability.
 
@@ -88,20 +92,22 @@ Every push to the `main` branch triggers an automated **Clinical Decision Guardr
 
 ---
  
- ## 6. Model Hyperparameter Blueprint (XGB-O.1.2)
+ ## 6. Model Hyperparameter Blueprint (v2.4.0)
  
- The current production model was optimized using Optuna (100 trials) to achieve a clinical-grade accuracy of **90.16%** ($N=303$).
+ The current production model was optimized using Optuna (100 trials) to achieve a clinical-grade accuracy of **88.52%** ($N=303$).
  
  ```json
  {
-   "n_estimators": 152,
-   "max_depth": 5,
-   "learning_rate": 0.018839840888145058,
+   "n_estimators": 80,
+   "max_depth": 12,
+   "learning_rate": 0.14765286433763314,
    "scale_pos_weight": 1.1685393258426966,
    "random_state": 42,
    "eval_metric": "logloss",
-   "subsample": 0.5911836813451903,
-   "colsample_bytree": 0.7410758805388522
+   "subsample": 0.7827180847167622,
+   "colsample_bytree": 0.7749553588022996,
+   "min_child_weight": 9,
+   "gamma": 2.192444713662289
  }
  ```
  

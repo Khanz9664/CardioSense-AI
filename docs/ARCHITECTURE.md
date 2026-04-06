@@ -1,4 +1,4 @@
-# System Architecture: CardioSense AI (XGB-O.1.2)
+# System Architecture: CardioSense AI (v2.4.0)
 
 CardioSense AI is a multi-layered Clinical Decision Support System (CDSS) designed for high-performance cardiovascular risk assessment with a focus on trust, interpretability, and safety.
 
@@ -31,6 +31,7 @@ graph TB
     subgraph "Data & Artifacts"
         Model[(XGBoost Model)]
         Meta[(Model Metadata)]
+        Hist[(Inference History DB)]
         Data[(UCI Patient Data)]
     end
 
@@ -42,7 +43,9 @@ graph TB
     Safety --> Predictor
     Simulator --> Model
     Recommender --> Explainer
-    Report --> Core
+    Report --> Predictor
+    API --> Hist
+    UI --> Hist
 ```
 
 ---
@@ -108,6 +111,7 @@ In medical AI, "Black Box" models are unusable. We implement four layers of trus
 2.  **Out-of-Distribution (OOD) Monitoring**: Compares input data against the statistical bounds of the training set (e.g., age ranges, BP maximums).
 3.  **Entropy-Based Confidence**: Calculates the mathematical uncertainty of the model's output, labeled as **High**, **Moderate**, or **Low** based on probability distribution clusters.
 4.  **Audit Hashes**: Every inference result is cryptographically linked to the model version and timestamp to ensure data integrity.
+5.  **Dynamic Monitoring Gateway**: Implements a `MonitoringEngine` that tracks **Data Drift** (using Evidently AI) and **Performance Decay** (Concept Drift) vs. the training baseline.
 
 ---
 

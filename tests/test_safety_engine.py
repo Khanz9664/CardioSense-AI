@@ -74,3 +74,42 @@ def test_out_of_distribution_bounds(safety_engine, base_patient):
     warnings = safety_engine.check_out_of_distribution(ood_patient)
     assert len(warnings) > 1 or (len(warnings) == 1 and "TRESTBPS" in warnings[0])
     assert any("TRESTBPS" in w and "ABOVE" in w for w in warnings)
+
+def test_adversarial_outliers(safety_engine, base_patient):
+    # 1. Extreme Pediatric case (Age < 29)
+    child_patient = base_patient.copy()
+    child_patient['age'] = 5
+    warnings_child = safety_engine.check_out_of_distribution(child_patient)
+    assert any("AGE" in w and "5" in w and "BELOW" in w for w in warnings_child)
+    
+    # 2. Impossible Cholesterol (> 564)
+    extreme_chol = base_patient.copy()
+    extreme_chol['chol'] = 800
+    warnings_chol = safety_engine.check_out_of_distribution(extreme_chol)
+    assert any("CHOL" in w and "800" in w and "ABOVE" in w for w in warnings_chol)
+
+def test_clinical_overrides_combination(safety_engine, base_patient):
+    # Multiple risk factors triggering overrides simultaneously
+    critical_patient = base_patient.copy()
+    critical_patient['trestbps'] = 190 # BP Override
+    critical_patient['ca'] = 3        # Vascular Override
+    critical_patient['oldpeak'] = 4.0 # Ischemic Override
+    
+    overrides = safety_engine.get_clinical_overrides(critical_patient)
+    # Should have at least 3 separate override reasons
+    assert len(overrides) >= 3
+    reasons = [r['reason'] for r in overrides]
+    assert any("Hypertensive Crisis" in r for r in reasons)
+    assert any("Multivessel Disease" in r for r in reasons)
+    assert any("Ischemic Depression" in r for r in reasons)
+
+def test_confidence_boundary_entropy(safety_engine):
+    # Pure ambiguity (p=0.5)
+    res_ambiguous = safety_engine.calculate_confidence(0.5)
+    assert res_ambiguous['level'] == "LOW"
+    assert res_ambiguous['score'] == 0.0 # Entropy is max (1.0), so 1-1 = 0
+    
+    # Extreme certainty (p=0.9999999)
+    res_certain = safety_engine.calculate_confidence(0.9999999)
+    assert res_certain['level'] == "HIGH"
+    assert res_certain['score'] > 99.0

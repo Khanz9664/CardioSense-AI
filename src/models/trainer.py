@@ -16,29 +16,87 @@ from sklearn.calibration import calibration_curve, CalibratedClassifierCV
 from sklearn.inspection import permutation_importance
 from sklearn.frozen import FrozenEstimator
 from src.data.preprocessor import HeartDiseasePreprocessor
+import logging
+
+# Setup Clinical Logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.FileHandler("trainer.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("ClinicalTrainer")
 
 def objective(trial, X, y):
     """
     Optuna objective function for XGBoost hyperparameter tuning.
+    Optimizes for a clinical utility score: Weighted average of Accuracy, Recall, and Calibration.
     """
     params = {
-        'n_estimators': trial.suggest_int('n_estimators', 50, 300),
-        'max_depth': trial.suggest_int('max_depth', 3, 10),
-        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3, log=True),
+        'n_estimators': trial.suggest_int('n_estimators', 50, 400),
+        'max_depth': trial.suggest_int('max_depth', 3, 12),
+        'learning_rate': trial.suggest_float('learning_rate', 0.005, 0.3, log=True),
         'subsample': trial.suggest_float('subsample', 0.5, 1.0),
         'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0),
+        'min_child_weight': trial.suggest_int('min_child_weight', 1, 10),
+        'gamma': trial.suggest_float('gamma', 0, 5),
         'random_state': 42,
         'eval_metric': 'logloss'
     }
     
-    # Handle class imbalance explicitly
-    scale_pos_weight = (len(y) - y.sum()) / y.sum()
-    params['scale_pos_weight'] = scale_pos_weight
-    
+    # Stratified K-Fold for robust assessment
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    model = XGBClassifier(**params)
-    score = cross_val_score(model, X, y, cv=cv, scoring='accuracy').mean()
-    return score
+    model = XGBClassifier(**params, scale_pos_weight=(len(y) - y.sum()) / y.sum())
+    
+    # We use multiple metrics for a holistic clinical evaluation
+    from sklearn.model_selection import cross_validate
+    scoring = {
+        'accuracy': 'accuracy',
+        'recall': 'recall',
+        'brier': 'neg_brier_score'
+    }
+    
+    cv_results = cross_validate(model, X, y, cv=cv, scoring=scoring)
+    
+    avg_accuracy = cv_results['test_accuracy'].mean()
+    avg_recall = cv_results['test_recall'].mean()
+    avg_brier_neg = cv_results['test_brier'].mean() # Negative value, 0 is best
+    
+    # Clinical Utility Score (CUS):
+    # - Recall (Sensitivity) is critical in medical screening (Weight: 50%)
+    # - Brier Score ensures probability calibration (Weight: 30%)
+    # - Overall Accuracy accounts for general predictive power (Weight: 20%)
+    # We transform neg_brier_score (-0.25 to 0) to a positive benefit score (1 + brier)
+    cus = (0.5 * avg_recall) + (0.3 * (1 + avg_brier_neg)) + (0.2 * avg_accuracy)
+    
+    # Store sub-metrics in trial user attributes for later analysis
+    trial.set_user_attr("accuracy", avg_accuracy)
+    trial.set_user_attr("recall", avg_recall)
+    trial.set_user_attr("brier_score", -avg_brier_neg)
+    
+    return cus
+
+def get_next_version(output_dir: str) -> str:
+    """
+    Reads the current version from model_metadata.json and returns the next MINOR version.
+    Defaults to 1.0.0 if file not found.
+    """
+    meta_path = os.path.join(output_dir, "model_metadata.json")
+    if not os.path.exists(meta_path):
+        return "1.0.0"
+    
+    try:
+        with open(meta_path, 'r') as f:
+            metadata = json.load(f)
+            current_version = metadata.get("version", "1.0.0")
+            parts = current_version.split('.')
+            major = int(parts[0])
+            minor = int(parts[1])
+            return f"{major}.{minor + 1}.0"
+    except Exception:
+        return "1.0.0"
 
 def train_model(X: pd.DataFrame, y: pd.Series, tune=True):
     """
@@ -75,13 +133,13 @@ def train_model(X: pd.DataFrame, y: pd.Series, tune=True):
     }
 
     if tune:
-        print("\n--- Starting Hyperparameter Optimization with Optuna ---")
+        logger.info("Starting Clinical Optimization (Optuna: 50 trials)...")
         study = optuna.create_study(direction='maximize')
         study.optimize(lambda trial: objective(trial, X_train, y_train), n_trials=50)
         best_params.update(study.best_params)
         best_params['scale_pos_weight'] = scale_pos_weight # Ensure it's not overwritten
-        print(f"Best trial accuracy: {study.best_value:.4f}")
-        print(f"Best parameters: {best_params}")
+        logger.info(f"Optimization Complete. Best Value: {study.best_value:.4f}")
+        logger.info(f"Metrics -> Accuracy: {study.best_trial.user_attrs['accuracy']:.4f}, Recall: {study.best_trial.user_attrs['recall']:.4f}")
 
     # Initialize and fit final base model
     base_model = XGBClassifier(**best_params)
@@ -132,7 +190,10 @@ def train_model(X: pd.DataFrame, y: pd.Series, tune=True):
     shap_global_importances = np.abs(shap_vals_matrix).mean(axis=0)
     
     # Spearman rank correlation between Native XGB Importance and Global SHAP Importance
-    spearman_corr, _ = spearmanr(base_model.feature_importances_, shap_global_importances)
+    if np.std(base_model.feature_importances_) > 0 and np.std(shap_global_importances) > 0:
+        spearman_corr, _ = spearmanr(base_model.feature_importances_, shap_global_importances)
+    else:
+        spearman_corr = 1.0 # Perfect consistency if both are flat (unlikely but safe)
     
     # --- Bias & Fairness Assessment ---
     bias_metrics = {}
@@ -190,7 +251,8 @@ def train_model(X: pd.DataFrame, y: pd.Series, tune=True):
         "best_params": best_params,
         "healthy_baseline": median_healthy,
         "X_reference": X_ref,
-        "preprocessor": preprocessor 
+        "preprocessor": preprocessor,
+        "version": get_next_version("models")
     }
     
     print(f"\nFinal Model Accuracy: {metrics['accuracy']:.4f}")
@@ -227,7 +289,7 @@ def save_model_artifacts(model, metrics, output_dir: str):
     with open(meta_path, 'w') as f:
         json.dump(metrics, f, indent=4)
         
-    print(f"Model, preprocessor, and metadata saved to {output_dir}")
+    logger.info(f"Clinical Engine Artifacts (v{metrics['version']}) saved successfully to {output_dir}")
 
 if __name__ == "__main__":
     # Test script - assuming processed data exists
@@ -240,6 +302,7 @@ if __name__ == "__main__":
         y_data = df["target"]
         
         model_final, metrics_final = train_model(X_data, y_data)
+        print(f"--- Training Complete (Clinical Engine v{metrics_final['version']}) ---")
         save_model_artifacts(model_final, metrics_final, "models")
     else:
         print(f"Processed data not found at {PROCESSED_DATA_PATH}. Run loader.py first.")

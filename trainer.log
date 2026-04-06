@@ -60,3 +60,11 @@ Precision: 0.8438 | Recall: 0.9643 | F1: 0.9000
 Brier Score: 0.0813
 Preprocessor saved to models/preprocessor.joblib
 Model, preprocessor, and metadata saved to models
+2026-04-06 14:30:31,640 [INFO] Starting Clinical Optimization (Optuna: 50 trials)...
+2026-04-06 14:30:57,963 [INFO] Optimization Complete. Best Value: 0.8336
+2026-04-06 14:30:57,964 [INFO] Metrics -> Accuracy: 0.8242, Recall: 0.8209
+2026-04-06 14:30:59,617 [INFO] Clinical Engine Artifacts (v2.3.0) saved successfully to models
+2026-04-06 21:45:08,468 [INFO] Starting Clinical Optimization (Optuna: 50 trials)...
+2026-04-06 21:45:32,059 [INFO] Optimization Complete. Best Value: 0.8326
+2026-04-06 21:45:32,060 [INFO] Metrics -> Accuracy: 0.8190, Recall: 0.8209
+2026-04-06 21:45:33,527 [INFO] Clinical Engine Artifacts (v2.4.0) saved successfully to models

@@ -33,3 +33,4 @@ uvicorn
 pydantic
 watchdog
 fpdf2
+evidently

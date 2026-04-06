@@ -16,7 +16,8 @@ CardioSense AI exposes a production-grade FastAPI REST interface for seamless in
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
 | `/predict` | `POST` | Primary inference endpoint for patient risk assessment. |
-| `/metadata` | `GET` | Returns model version, accuracy, and healthy benchmarks. |
+| `/monitoring/status` | `GET` | (NEW) Returns data/concept drift and performance audit stats. |
+| `/feedback/{id}` | `POST` | (NEW) Clinician endpoint for ground-truth outcome labeling. |
 | `/health` | `GET` | System health check and clinical engine versioning. |
 | `/docs` | `GET` | Interactive Swagger UI. |
 
@@ -54,13 +55,11 @@ Submit patient vitals to receive a heart disease risk probability.
 {
     "prediction": 1,
     "risk_probability": 0.9234,
-    "status": "High Risk",
-    "version": "2.1.0",
-    "request_id": "..."
+    "status": "Positive (High Risk)",
+    "model_version": "2.4.0",
+    "request_id": "550e8400-e2..."
 }
 ```
-
----
 
 ### GET `/health`
 Check if the system is online and the clinical engine is correctly loaded.
@@ -70,8 +69,37 @@ Check if the system is online and the clinical engine is correctly loaded.
 {
     "status": "healthy",
     "model_loaded": true,
-    "version": "2.1.0",
-    "timestamp": "..."
+    "model_version": "2.4.0",
+    "uptime_heartbeat": 1712435...
+}
+```
+
+---
+
+### GET `/monitoring/status`
+Returns a high-level summary of data stability and concept drift (performance decay).
+
+**Response (JSON)**:
+```json
+{
+    "drift": {
+        "status": "success",
+        "drift_share": 0.0,
+        "dataset_drift": false,
+        "target_drift_p": 0.9222,
+        "columns_monitored": 25,
+        "last_updated": "2026-04-06 08:40:56",
+        "report_path": "reports/monitoring/data_drift.html"
+    },
+    "performance": {
+        "status": "success",
+        "current_recall": 0.881,
+        "baseline_recall": 0.8929,
+        "recall_drop": 0.0119,
+        "feedback_count": 100,
+        "concept_drift_detected": false
+    },
+    "timestamp": 1712435...
 }
 ```
 
