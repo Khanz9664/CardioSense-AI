@@ -138,18 +138,18 @@ class ClinicalReportGenerator(FPDF):
         self.cell(45, 7, f"AGE: {data['age']}", 0)
         self.cell(45, 7, f"BP: {data['trestbps']} mmHg", 0)
         self.cell(45, 7, f"CHOLEST: {data['chol']} mg/dL", 0)
-        self.cell(45, 7, f"MAX HR: {data['thalach']}", ln=True)
+        self.cell(45, 7, f"MAX HR: {data['thalach']}", new_x="LMARGIN", new_y="NEXT")
         
         self.ln(3)
         self.set_font('helvetica', 'B', 10)
-        self.cell(0, 8, "Physiological Guideline Alignment (ACC/AHA)", ln=True)
+        self.cell(0, 8, "Physiological Guideline Alignment (ACC/AHA)", new_x="LMARGIN", new_y="NEXT")
         
         # Table
         self.set_font('helvetica', 'B', 9)
         self.set_fill_color(240, 240, 240)
         self.cell(50, 8, "Clinical Metric", 1, 0, 'C', fill=True)
         self.cell(100, 8, "Guideline Stage / Analysis", 1, 0, 'C', fill=True)
-        self.cell(40, 8, "Severity", 1, 1, 'C', fill=True)
+        self.cell(40, 8, "Severity", 1, new_x="LMARGIN", new_y="NEXT", align='C', fill=True)
         
         self.set_font('helvetica', '', 9)
         for row in assessment:
@@ -158,7 +158,7 @@ class ClinicalReportGenerator(FPDF):
             self.cell(100, 8, row['status'], 1)
             self.set_font('helvetica', 'B', 9)
             self.set_text_color(*sev_color)
-            self.cell(40, 8, row['severity'], 1, 1, 'C')
+            self.cell(40, 8, row['severity'], 1, new_x="LMARGIN", new_y="NEXT", align='C')
             self.set_text_color(0)
             self.set_font('helvetica', '', 9)
 
@@ -166,11 +166,12 @@ class ClinicalReportGenerator(FPDF):
             self.ln(2)
             self.set_text_color(200, 0, 0)
             self.set_font('helvetica', 'B', 10)
-            self.cell(0, 8, "!!! ACTIVE CLINICAL CRITICAL OVERRIDES", ln=True)
+            self.cell(0, 8, "!!! ACTIVE CLINICAL CRITICAL OVERRIDES", new_x="LMARGIN", new_y="NEXT")
             self.set_font('helvetica', '', 9)
             for o in overrides:
-                self.cell(5)
-                self.multi_cell(0, 5, f"- {o['reason']}")
+                self.set_x(15) # Explicit indent
+                # Use explicit width (185) instead of 0 to avoid space calculation errors
+                self.multi_cell(185, 5, f"- {o['reason']}", new_x="LMARGIN", new_y="NEXT")
             self.set_text_color(0)
 
     def add_interpretability(self, shap_plot_path, radar_plot_path=None):
@@ -184,7 +185,7 @@ class ClinicalReportGenerator(FPDF):
             
         if radar_plot_path and os.path.exists(radar_plot_path):
             self.set_font('helvetica', 'B', 10)
-            self.cell(0, 10, "Clinical Profile Optimization (Current vs Target)", ln=True)
+            self.cell(0, 10, "Clinical Profile Optimization (Current vs Target)", new_x="LMARGIN", new_y="NEXT")
             self.image(radar_plot_path, x=45, w=120)
             self.ln(5)
 
@@ -193,7 +194,7 @@ class ClinicalReportGenerator(FPDF):
         
         if opt_results:
             self.set_font('helvetica', 'B', 10)
-            self.cell(0, 8, "Least Effort Path (AI-Optimized Strategy)", ln=True)
+            self.cell(0, 8, "Least Effort Path (AI-Optimized Strategy)", new_x="LMARGIN", new_y="NEXT")
             self.set_font('helvetica', '', 10)
             target_risk = opt_results.get('final_prob', 0) * 100
             self.multi_cell(0, 6, f"The engine has identified a high-efficiency path to reach a {target_risk:.1f}% risk profile. This strategy prioritizes interventions with the highest risk-reduction-to-effort ratio.")
@@ -206,7 +207,7 @@ class ClinicalReportGenerator(FPDF):
             self.cell(30, 8, "Factor", 1, 0, 'C', fill=True)
             self.cell(80, 8, "Clinical Action", 1, 0, 'C', fill=True)
             self.cell(50, 8, "Clinical Impact", 1, 0, 'C', fill=True)
-            self.cell(30, 8, "Priority", 1, 1, 'C', fill=True)
+            self.cell(30, 8, "Priority", 1, new_x="LMARGIN", new_y="NEXT", align='C', fill=True)
             
             self.set_font('helvetica', '', 8)
             for step in roadmap:
@@ -216,7 +217,7 @@ class ClinicalReportGenerator(FPDF):
                 self.cell(50, 8, step['impact'], 1)
                 self.set_font('helvetica', 'B', 8)
                 self.set_text_color(*p_color)
-                self.cell(30, 8, step['priority'], 1, 1, 'C')
+                self.cell(30, 8, step['priority'], 1, new_x="LMARGIN", new_y="NEXT", align='C')
                 self.set_text_color(0)
                 self.set_font('helvetica', '', 8)
             self.ln(5)
@@ -228,7 +229,7 @@ class ClinicalReportGenerator(FPDF):
             color = (210, 0, 0) if p == 'HIGH' else (0, 0, 0)
             self.set_font('helvetica', 'B', 10)
             self.set_text_color(*color)
-            self.cell(0, 8, f"[{p} PRIORITY] {r['title']}", ln=True)
+            self.cell(0, 8, f"[{p} PRIORITY] {r['title']}", new_x="LMARGIN", new_y="NEXT")
             self.set_text_color(0)
             self.set_font('helvetica', '', 10)
             self.multi_cell(0, 6, f"Rationale: {r['rationale']}")
@@ -237,7 +238,7 @@ class ClinicalReportGenerator(FPDF):
     def add_signoff(self):
         self.ln(10)
         self.set_font('helvetica', 'B', 10)
-        self.cell(0, 10, "CLINICAL SIGN-OFF", ln=True)
+        self.cell(0, 10, "CLINICAL SIGN-OFF", new_x="LMARGIN", new_y="NEXT")
         self.ln(5)
         
         curr_y = self.get_y()
