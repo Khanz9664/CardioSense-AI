@@ -65,14 +65,14 @@ class MonitoringEngine:
         else:
             drift_report = Report([DriftedColumnsCount()])
             
-        snapshot = drift_report.run(current_data=current_df[compare_cols], reference_data=ref_df[compare_cols])
+        drift_report.run(current_data=current_df[compare_cols], reference_data=ref_df[compare_cols])
         
         # Save HTML Report for the UI to embed
         html_path = os.path.join(self.report_dir, "data_drift.html")
-        snapshot.save_html(html_path)
+        drift_report.save_html(html_path)
         
-        # Extract Summary Metrics using Snapshot properties
-        report_json = snapshot.dict()
+        # Extract Summary Metrics using Report properties
+        report_json = drift_report.dict()
         
         # In 0.7.x, the structure might be different. We'll try to find 'share_of_drifted_columns'
         # Typically it's in the results of the DataDriftPreset metrics.
