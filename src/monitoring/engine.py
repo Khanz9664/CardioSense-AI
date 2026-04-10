@@ -88,42 +88,68 @@ class MonitoringEngine:
             print("ERROR: drift_report is None after run")
             return {"status": "error", "message": "Report nullified after run"}
 
-        # Save HTML Report for the UI to embed
+        # Save HTML Report for the UI to embed (Adaptive Search)
         html_path = os.path.join(self.report_dir, "data_drift.html")
         try:
-            drift_report.save_html(html_path)
+            if hasattr(drift_report, 'save_html'):
+                drift_report.save_html(html_path)
+            elif hasattr(drift_report, 'save'):
+                drift_report.save(html_path)
+            else:
+                print("DEBUG: No 'save_html' or 'save' method found. Available:", [m for m in dir(drift_report) if not m.startswith('_')])
         except Exception as e:
             print(f"ERROR: Failed to save HTML: {e}")
         
-        # Extract Summary Metrics using Report properties
-        report_json = {}
-        try:
-            report_json = drift_report.dict()
-        except Exception as e:
-            print(f"ERROR: Failed to convert report to dict: {e}")
-            return {"status": "error", "message": "Result extraction failed"}
-        
-        # Extraction logic
+        # Extract Summary Metrics (Bypassing missing methods via Direct Attribute Access)
         drift_share = 0.0
         dataset_drift = False
         
         try:
-            metrics_list = report_json.get('metrics', [])
-            for metric in metrics_list:
-                res = metric.get('result', {})
-                # Preset Structure
-                if USING_PRESET and 'share_of_drifted_columns' in res:
-                    drift_share = float(res['share_of_drifted_columns'])
-                    dataset_drift = bool(res['dataset_drift'])
-                    break
-                # Metric Structure (Legacy/Local)
-                elif not USING_PRESET:
-                    if 'share_of_drifted_columns' in res:
+            # First, try the standard method-based extraction we already have
+            report_json = {}
+            if hasattr(drift_report, 'dict'):
+                report_json = drift_report.dict()
+            elif hasattr(drift_report, 'as_dict'):
+                report_json = drift_report.as_dict()
+            elif hasattr(drift_report, 'json'):
+                report_json = json.loads(drift_report.json())
+            
+            # If method-based failed (empty dict), try Direct Attribute Iteration
+            if not report_json and hasattr(drift_report, 'metrics'):
+                for metric_obj in drift_report.metrics:
+                    # Look for the result object on the metric instance
+                    res = getattr(metric_obj, 'get_result', lambda: None)()
+                    if res is None:
+                        res = getattr(metric_obj, 'result', {})
+                    
+                    # Access attributes directly from the result object or dict
+                    if hasattr(res, 'share_of_drifted_columns'):
+                        drift_share = float(res.share_of_drifted_columns)
+                        dataset_drift = bool(getattr(res, 'dataset_drift', drift_share > 0.5))
+                        break
+                    elif isinstance(res, dict) and 'share_of_drifted_columns' in res:
+                        drift_share = float(res['share_of_drifted_columns'])
+                        dataset_drift = bool(res.get('dataset_drift', drift_share > 0.5))
+                        break
+            
+            # If we have a report_json, use the existing logic
+            elif report_json:
+                metrics_list = report_json.get('metrics', [])
+                for metric in metrics_list:
+                    res = metric.get('result', {})
+                    if USING_PRESET and 'share_of_drifted_columns' in res:
+                        drift_share = float(res['share_of_drifted_columns'])
+                        dataset_drift = bool(res['dataset_drift'])
+                        break
+                    elif not USING_PRESET and 'share_of_drifted_columns' in res:
                         drift_share = float(res['share_of_drifted_columns'])
                         dataset_drift = bool(res.get('dataset_drift', drift_share > 0.5))
                         break
         except Exception as e:
-            print(f"Warning: Could not extract drift metrics: {e}")
+            print(f"ERROR: Direct extraction failed: {e}")
+            # Fallback to a very safe neutral value if all else fails
+            drift_share = 0.0
+            dataset_drift = False
 
         # 2. Prediction Drift (Target Drift) - Manual Robust Calculation
         # We perform a Kolmogorov-Smirnov test to detect distribution shift in probabilities

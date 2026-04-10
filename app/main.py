@@ -460,10 +460,12 @@ with tab1:
             data=transformed_sample.iloc[0].values,
             feature_names=transformed_sample.columns.tolist()
         )
-        fig_wf = plt.gcf()
-        st.pyplot(fig_wf, clear_figure=True)
+        fig_wf, ax_wf = plt.subplots(figsize=(8, 6))
+        # Restore the premium Waterfall plot as requested
+        shap.plots.waterfall(clean_exp_ui, max_display=14, show=False)
+        st.pyplot(plt.gcf())
         plt.close(fig_wf)
-        st.caption("SHAP Bar chart showing absolute contribution (log-odds) of each vital to the prediction.")
+        st.caption("SHAP Waterfall plot showing the magnitude and direction of feature contributions to the local risk score.")
         
         st.markdown("---")
         st.write("**LIME Linear Surrogate Perturbations**")
@@ -472,7 +474,7 @@ with tab1:
             if lime_exp:
                 fig_lime = lime_exp.as_pyplot_figure()
                 fig_lime.set_size_inches(8, 6)
-                st.pyplot(fig_lime, clear_figure=True)
+                st.pyplot(fig_lime)
                 plt.close(fig_lime)
                 st.caption("LIME visualization displaying linear surrogate weights driving local probability.")
             else:
