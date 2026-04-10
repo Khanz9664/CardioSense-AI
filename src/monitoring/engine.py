@@ -4,7 +4,7 @@ import joblib
 import json
 import os
 from typing import Dict, Any, Optional, Tuple
-from evidently import Report
+from evidently.report import Report
 from evidently.metrics import DriftedColumnsCount
 from scipy.stats import ks_2samp
 from src.monitoring.logger import MonitoringLogger
