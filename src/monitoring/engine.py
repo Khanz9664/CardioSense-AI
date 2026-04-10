@@ -60,31 +60,57 @@ class MonitoringEngine:
         compare_cols = [c for c in ref_df.columns if c in current_df.columns]
         
         # 1. Data Drift Report (Using version-aware metric selection)
-        if USING_PRESET:
-            drift_report = Report([DataDriftPreset()])
-        else:
-            drift_report = Report([DriftedColumnsCount()])
+        drift_report = None
+        try:
+            if USING_PRESET:
+                drift_report = Report([DataDriftPreset()])
+            else:
+                drift_report = Report([DriftedColumnsCount()])
+        except Exception as e:
+            print(f"ERROR: Report initialization failed: {e}")
+            return {"status": "error", "message": f"Init failed: {e}"}
             
-        drift_report.run(current_data=current_df[compare_cols], reference_data=ref_df[compare_cols])
+        if drift_report is None:
+            print("ERROR: drift_report is None after initialization")
+            return {"status": "error", "message": "Report is None"}
+
+        print(f"DEBUG: drift_report type before run: {type(drift_report)}")
         
+        try:
+            drift_report.run(current_data=current_df[compare_cols], reference_data=ref_df[compare_cols])
+        except Exception as e:
+            print(f"ERROR: Report run failed: {e}")
+            return {"status": "error", "message": f"Run failed: {e}"}
+
+        print(f"DEBUG: drift_report type after run: {type(drift_report)}")
+        
+        if drift_report is None:
+            print("ERROR: drift_report is None after run")
+            return {"status": "error", "message": "Report nullified after run"}
+
         # Save HTML Report for the UI to embed
         html_path = os.path.join(self.report_dir, "data_drift.html")
-        drift_report.save_html(html_path)
+        try:
+            drift_report.save_html(html_path)
+        except Exception as e:
+            print(f"ERROR: Failed to save HTML: {e}")
         
         # Extract Summary Metrics using Report properties
-        report_json = drift_report.dict()
+        report_json = {}
+        try:
+            report_json = drift_report.dict()
+        except Exception as e:
+            print(f"ERROR: Failed to convert report to dict: {e}")
+            return {"status": "error", "message": "Result extraction failed"}
         
-        # In 0.7.x, the structure might be different. We'll try to find 'share_of_drifted_columns'
-        # Typically it's in the results of the DataDriftPreset metrics.
+        # Extraction logic
         drift_share = 0.0
         dataset_drift = False
         
         try:
-            # Extraction logic depends on whether we used a Preset or a single Metric
             metrics_list = report_json.get('metrics', [])
             for metric in metrics_list:
                 res = metric.get('result', {})
-                
                 # Preset Structure
                 if USING_PRESET and 'share_of_drifted_columns' in res:
                     drift_share = float(res['share_of_drifted_columns'])
@@ -92,14 +118,12 @@ class MonitoringEngine:
                     break
                 # Metric Structure (Legacy/Local)
                 elif not USING_PRESET:
-                    # In some Metric structures, it's just 'drift_score' or similar
-                    # We look for the most common indicators
                     if 'share_of_drifted_columns' in res:
                         drift_share = float(res['share_of_drifted_columns'])
                         dataset_drift = bool(res.get('dataset_drift', drift_share > 0.5))
                         break
         except Exception as e:
-            print(f"Warning: Could not extract drift metrics from Evidently result: {e}")
+            print(f"Warning: Could not extract drift metrics: {e}")
 
         # 2. Prediction Drift (Target Drift) - Manual Robust Calculation
         # We perform a Kolmogorov-Smirnov test to detect distribution shift in probabilities
