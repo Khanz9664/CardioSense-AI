@@ -19,3 +19,5 @@ share/
 # IDE
 .vscode/
 .idea/
+
+htmlcov/
