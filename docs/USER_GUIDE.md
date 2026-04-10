@@ -1,4 +1,4 @@
-# Clinical User Guide: CardioSense AI (v2.1.0)
+# Clinical User Guide: CardioSense AI (v2.4.0)
 
 CardioSense AI facilitates advanced cardiovascular decision-making through an interactive dashboard and automated clinical reporting.
 
@@ -16,7 +16,7 @@ The CardioSense AI dashboard provides a comprehensive medical interface for risk
 
 ### Patient Inputs & Risk Pulse
 - **Sidebar**: Input traditional cardiovascular risk factors (Age, BP, Cholesterol, etc.).
-- **Reliability Score**: Active **XGB-O.1.2** engine (**90.16% Acc**) ensures production-grade stability.
+- **Reliability Score**: Active **v2.4.0** engine (**88.52% Acc**) ensures production-grade stability.
 
 ![Patient Inputs](../app/assets/App_Screenshots/1.png)
 ![Risk Pulse Gauge](../app/assets/App_Screenshots/2.png)
@@ -88,7 +88,7 @@ The system will automatically escalate risk to **POSITIVE** if critical life-saf
 - **Ischemic Severity**: ST depression (oldpeak) > 3.0.
 
 ### Entropy-Based Confidence
-Every prediction includes a **Confidence Gauge** (1.0 - H(p)). These values are now more stable due to the **v2.1.0 Robust Preprocessing Pipeline**:
+Every prediction includes a **Confidence Gauge** (1.0 - H(p)). These values are now more stable due to the **v2.4.0 Robust Preprocessing Pipeline**:
 - **HIGH**: The AI has a clear, focused statistical rationale.
 - **MODERATE**: Requires physician review.
 - **LOW**: High entropy/ambiguity. The AI indicates a "Boundary Case."

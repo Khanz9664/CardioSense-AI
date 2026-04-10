@@ -119,19 +119,22 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 - **The Safety & Trust Framework**: Implements ACC/AHA guideline overrides and out-of-distribution (OOD) monitoring.
 - **The Optimization Engine**: Calculates the "Least Effort Path" to risk reduction using clinical cost-weights.
 - **The Explainability Engine**: Powered by SHAP and LIME for local feature-level contributions and model reasoning.
+- **Modern Infrastructure**: Fully integrated **FastAPI Lifespan** management and hardened monitoring (variance guards).
 
 ---
 
 | Metric | Score | Professional Interpretation |
 | :--- | :--- | :--- |
-| **Model Version** | **XGB-O.1.2** | Optuna-optimized gradient boosted legacy engine. |
-| **Clinical Accuracy** | **90.16%** | Production-grade stability via robust preprocessing. |
-| **ROC-AUC Score** | **0.9524** | Exceptional ability to distinguish risk from health. |
-| **PR-AUC Score** | **0.9272** | High precision-recall balance for clinical flagging. |
-| **Recall (Sens.)** | **92.86%** | Minimized false negatives for patient safety. |
-| **F1 Score** | **0.8966** | Robust harmonic mean of precision and recall. |
+| **Model Version** | **v2.4.0** | Professional gradient boosted clinical engine. |
+| **Clinical Accuracy** | **88.52%** | Production-grade stability via robust preprocessing. |
+| **ROC-AUC Score** | **0.9621** | Exceptional ability to distinguish risk from health. |
+| **PR-AUC Score** | **0.9553** | High precision-recall balance for clinical flagging. |
+| **Recall (Sens.)** | **92.86%** | Maximized sensitivity for patient safety (Min FN). |
+| **F1 Score** | **0.8814** | Robust harmonic mean of precision and recall. |
+| **Test Coverage** | **63%** | Comprehensive unit testing across core clinical logic. |
+| **Clinical Tests** | **40** | Total verified clinical scenarios and edge cases. |
 | **Safety Engine** | **Active** | Standard-of-care guardrails for critical vitals. |
-| **Auditability** | **Enabled** | Full request tracing and model state hashing. |
+| **Auditability** | **Enabled** | Full request tracing (Lifespan) and state hashing. |
 
 ---
 

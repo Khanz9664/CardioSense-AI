@@ -20,3 +20,325 @@
 2026-04-05 13:09:50,111 | INFO     | [API-ENGINE] | REQ [ec267e25-8081-48f7-b051-b8ee26533b54] | GET / | STATUS: 200 | DUR: 0.0078s
 2026-04-05 13:09:55,442 | INFO     | [API-ENGINE] | REQ [228d5440-dbaf-46c1-852d-56631d55d746] | GET /docs | STATUS: 200 | DUR: 0.0005s
 2026-04-05 13:09:55,685 | INFO     | [API-ENGINE] | REQ [d2547436-9880-4b63-881e-657a03a2523f] | GET /openapi.json | STATUS: 200 | DUR: 0.0235s
+2026-04-06 15:06:50,319 | INFO     | [API-ENGINE] | Initializing Clinical Intelligence System...
+2026-04-06 15:06:50,377 | INFO     | [API-ENGINE] | Predictor model and preprocessor successfully loaded.
+2026-04-06 15:06:50,379 | INFO     | [API-ENGINE] | Clinical metadata loaded. Active Model Version: 2.3.0
+2026-04-06 15:06:59,994 | INFO     | [API-ENGINE] | REQ [2df5c237-b51f-4acf-8787-e9ed3f0c107b] | GET /health | STATUS: 200 | DUR: 0.0016s
+2026-04-06 15:07:00,218 | INFO     | [API-ENGINE] | Shutting down Clinical Intelligence System...
+2026-04-06 15:07:00,231 | INFO     | [API-ENGINE] | Initializing Clinical Intelligence System...
+2026-04-06 15:07:00,300 | INFO     | [API-ENGINE] | Predictor model and preprocessor successfully loaded.
+2026-04-06 15:07:00,301 | INFO     | [API-ENGINE] | Clinical metadata loaded. Active Model Version: 2.3.0
+2026-04-06 15:07:00,405 | INFO     | [API-ENGINE] | Shutting down Clinical Intelligence System...
+2026-04-06 15:15:28,202 | INFO     | [API-ENGINE] | Initializing Clinical Intelligence System...
+2026-04-06 15:15:28,242 | INFO     | [API-ENGINE] | Predictor model and preprocessor successfully loaded.
+2026-04-06 15:15:28,243 | INFO     | [API-ENGINE] | Clinical metadata loaded. Active Model Version: 2.3.0
+2026-04-06 15:15:32,253 | INFO     | [API-ENGINE] | REQ [7c74c050-9c3e-4772-9285-4d3b573acffd] | GET / | STATUS: 200 | DUR: 0.0031s
+2026-04-06 15:15:37,115 | INFO     | [API-ENGINE] | REQ [59aaffee-2ea3-437b-9988-d9cbd58ca27b] | GET /docs | STATUS: 200 | DUR: 0.0010s
+2026-04-06 15:15:37,379 | INFO     | [API-ENGINE] | REQ [429dd9ce-e084-4cc2-b67b-10a1bb09fa76] | GET /openapi.json | STATUS: 200 | DUR: 0.0278s
+2026-04-06 15:15:47,690 | INFO     | [API-ENGINE] | REQ [9faebb75-54e2-4866-af92-7f92403425ab] | GET /health | STATUS: 200 | DUR: 0.0021s
+2026-04-06 15:16:09,331 | ERROR    | [API-ENGINE] | EXCEPTION [N/A] | Unhandled error: [TypeError("'numpy.bool' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 328, in jsonable_encoder
+    data = dict(obj)
+           ^^^^^^^^^
+TypeError: 'numpy.bool' object is not iterable
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 333, in jsonable_encoder
+    data = vars(obj)
+           ^^^^^^^^^
+TypeError: vars() argument must have __dict__ attribute
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/api/main.py", line 81, in context_and_logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 289, in jsonable_encoder
+    encoded_value = jsonable_encoder(
+                    ^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 289, in jsonable_encoder
+    encoded_value = jsonable_encoder(
+                    ^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 336, in jsonable_encoder
+    raise ValueError(errors) from e
+ValueError: [TypeError("'numpy.bool' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]
+2026-04-06 15:16:41,804 | ERROR    | [API-ENGINE] | EXCEPTION [N/A] | Unhandled error: [TypeError("'numpy.bool' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 328, in jsonable_encoder
+    data = dict(obj)
+           ^^^^^^^^^
+TypeError: 'numpy.bool' object is not iterable
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 333, in jsonable_encoder
+    data = vars(obj)
+           ^^^^^^^^^
+TypeError: vars() argument must have __dict__ attribute
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/api/main.py", line 81, in context_and_logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 289, in jsonable_encoder
+    encoded_value = jsonable_encoder(
+                    ^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 289, in jsonable_encoder
+    encoded_value = jsonable_encoder(
+                    ^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 336, in jsonable_encoder
+    raise ValueError(errors) from e
+ValueError: [TypeError("'numpy.bool' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]
+2026-04-06 21:19:35,408 | ERROR    | [API-ENGINE] | EXCEPTION [N/A] | Unhandled error: [TypeError("'numpy.bool' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 328, in jsonable_encoder
+    data = dict(obj)
+           ^^^^^^^^^
+TypeError: 'numpy.bool' object is not iterable
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 333, in jsonable_encoder
+    data = vars(obj)
+           ^^^^^^^^^
+TypeError: vars() argument must have __dict__ attribute
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/api/main.py", line 81, in context_and_logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 289, in jsonable_encoder
+    encoded_value = jsonable_encoder(
+                    ^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 289, in jsonable_encoder
+    encoded_value = jsonable_encoder(
+                    ^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 336, in jsonable_encoder
+    raise ValueError(errors) from e
+ValueError: [TypeError("'numpy.bool' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]
+2026-04-06 21:21:22,165 | ERROR    | [API-ENGINE] | EXCEPTION [N/A] | Unhandled error: [TypeError("'numpy.bool' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 328, in jsonable_encoder
+    data = dict(obj)
+           ^^^^^^^^^
+TypeError: 'numpy.bool' object is not iterable
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 333, in jsonable_encoder
+    data = vars(obj)
+           ^^^^^^^^^
+TypeError: vars() argument must have __dict__ attribute
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/api/main.py", line 81, in context_and_logging_middleware
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 120, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 695, in app
+    content = await serialize_response(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/routing.py", line 317, in serialize_response
+    return jsonable_encoder(response_content)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 289, in jsonable_encoder
+    encoded_value = jsonable_encoder(
+                    ^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 289, in jsonable_encoder
+    encoded_value = jsonable_encoder(
+                    ^^^^^^^^^^^^^^^^^
+  File "/home/shahid/Desktop/new datasets/heart disease/CardioSense-AI/.venv/lib/python3.12/site-packages/fastapi/encoders.py", line 336, in jsonable_encoder
+    raise ValueError(errors) from e
+ValueError: [TypeError("'numpy.bool' object is not iterable"), TypeError('vars() argument must have __dict__ attribute')]
+2026-04-06 21:21:39,044 | INFO     | [API-ENGINE] | Shutting down Clinical Intelligence System...
+2026-04-06 21:21:57,116 | INFO     | [API-ENGINE] | Initializing Clinical Intelligence System...
+2026-04-06 21:21:57,164 | INFO     | [API-ENGINE] | Predictor model and preprocessor successfully loaded.
+2026-04-06 21:21:57,166 | INFO     | [API-ENGINE] | Clinical metadata loaded. Active Model Version: 2.3.0
+2026-04-06 21:22:05,546 | INFO     | [API-ENGINE] | REQ [b2f78161-1437-420c-a1eb-c27fabdfbb2e] | GET / | STATUS: 200 | DUR: 0.0030s
+2026-04-06 21:22:09,864 | INFO     | [API-ENGINE] | REQ [305ffee9-a013-4380-a28f-7a3eaf0588ed] | GET /docs | STATUS: 200 | DUR: 0.0004s
+2026-04-06 21:22:10,081 | INFO     | [API-ENGINE] | REQ [e206593e-d4ea-4a5e-92fb-b1fd18c1fc5b] | GET /openapi.json | STATUS: 200 | DUR: 0.0180s
+2026-04-06 21:22:18,632 | INFO     | [API-ENGINE] | REQ [39751c2f-209d-4730-a0a4-0837150ae755] | GET /health | STATUS: 200 | DUR: 0.0020s
+2026-04-06 21:22:35,605 | INFO     | [API-ENGINE] | REQ [b1925b6f-7680-470c-89a4-ae78ce9c1f7c] | GET /monitoring/status | STATUS: 200 | DUR: 0.5281s
+2026-04-06 21:23:03,067 | INFO     | [API-ENGINE] | Shutting down Clinical Intelligence System...
