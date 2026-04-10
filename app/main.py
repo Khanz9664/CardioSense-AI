@@ -460,10 +460,9 @@ with tab1:
             data=transformed_sample.iloc[0].values,
             feature_names=transformed_sample.columns.tolist()
         )
-        fig_wf, ax_wf = plt.subplots(figsize=(8, 6))
-        # Switch to Bar plot for local attribution (identical data, higher stability)
-        shap.plots.bar(clean_exp_ui, max_display=14, show=False)
-        st.pyplot(plt.gcf())
+        fig_wf = plt.gcf()
+        st.pyplot(fig_wf, clear_figure=True)
+        plt.close(fig_wf)
         st.caption("SHAP Bar chart showing absolute contribution (log-odds) of each vital to the prediction.")
         
         st.markdown("---")
@@ -473,7 +472,8 @@ with tab1:
             if lime_exp:
                 fig_lime = lime_exp.as_pyplot_figure()
                 fig_lime.set_size_inches(8, 6)
-                st.pyplot(fig_lime)
+                st.pyplot(fig_lime, clear_figure=True)
+                plt.close(fig_lime)
                 st.caption("LIME visualization displaying linear surrogate weights driving local probability.")
             else:
                 st.warning("LIME explainer not initialized.")
@@ -578,7 +578,7 @@ with tab2:
             fig_radar.add_trace(go.Scatterpolar(r=o_vals, theta=labels, fill='toself', name='Target', line_color='#28a745'))
             fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 1.2], showticklabels=False)), 
                                    height=350, margin=dict(l=30, r=30, t=30, b=30), paper_bgcolor='rgba(0,0,0,0)')
-            st.plotly_chart(fig_radar, width='stretch')
+            st.plotly_chart(fig_radar, use_container_width=True, key=f"radar_{audit_hash}")
 
     # 2. ROADMAP STEPS
     with opt_col2:
