@@ -4,8 +4,22 @@ import joblib
 import json
 import os
 from typing import Dict, Any, Optional, Tuple
-from evidently.report import Report
-from evidently.metric_preset import DataDriftPreset
+# Defensive Evidently Imports for Cross-Environment Compatibility (v2.4.0 standards)
+try:
+    from evidently.report import Report
+    from evidently.metric_preset import DataDriftPreset
+    USING_PRESET = True
+except ImportError:
+    # Fallback for older Evidently versions or top-level import structures
+    try:
+        from evidently import Report
+        from evidently.metrics import DriftedColumnsCount
+        USING_PRESET = False
+    except ImportError:
+        # Fallback if metrics sub-module is also different
+        from evidently.metrics.data_drift_metrics import DriftedColumnsCount
+        USING_PRESET = False
+
 from scipy.stats import ks_2samp
 from src.monitoring.logger import MonitoringLogger
 
@@ -45,8 +59,12 @@ class MonitoringEngine:
         # Align columns (drop metadata columns from current_df for comparison)
         compare_cols = [c for c in ref_df.columns if c in current_df.columns]
         
-        # 1. Data Drift Report (Using the stable DataDriftPreset for comprehensive analysis)
-        drift_report = Report([DataDriftPreset()])
+        # 1. Data Drift Report (Using version-aware metric selection)
+        if USING_PRESET:
+            drift_report = Report([DataDriftPreset()])
+        else:
+            drift_report = Report([DriftedColumnsCount()])
+            
         snapshot = drift_report.run(current_data=current_df[compare_cols], reference_data=ref_df[compare_cols])
         
         # Save HTML Report for the UI to embed
@@ -62,16 +80,26 @@ class MonitoringEngine:
         dataset_drift = False
         
         try:
-            # DataDriftPreset metrics results are nested differently
-            for metric in report_json.get('metrics', []):
+            # Extraction logic depends on whether we used a Preset or a single Metric
+            metrics_list = report_json.get('metrics', [])
+            for metric in metrics_list:
                 res = metric.get('result', {})
-                # DatasetDriftMetric provides share_of_drifted_columns
-                if 'share_of_drifted_columns' in res:
+                
+                # Preset Structure
+                if USING_PRESET and 'share_of_drifted_columns' in res:
                     drift_share = float(res['share_of_drifted_columns'])
                     dataset_drift = bool(res['dataset_drift'])
                     break
+                # Metric Structure (Legacy/Local)
+                elif not USING_PRESET:
+                    # In some Metric structures, it's just 'drift_score' or similar
+                    # We look for the most common indicators
+                    if 'share_of_drifted_columns' in res:
+                        drift_share = float(res['share_of_drifted_columns'])
+                        dataset_drift = bool(res.get('dataset_drift', drift_share > 0.5))
+                        break
         except Exception as e:
-            print(f"Warning: Could not extract drift metrics from Preset: {e}")
+            print(f"Warning: Could not extract drift metrics from Evidently result: {e}")
 
         # 2. Prediction Drift (Target Drift) - Manual Robust Calculation
         # We perform a Kolmogorov-Smirnov test to detect distribution shift in probabilities

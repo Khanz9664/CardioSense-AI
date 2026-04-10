@@ -336,8 +336,9 @@ with top_col2:
     
     # --- Dynamic Reliability Metrics ---
     # Extract version, accuracy, and optimization date directly from model artifacts
-    model_version = metadata.get('version', 'v2.4.0')
-    raw_acc = metadata.get('accuracy', 0.8852)
+    # Use robust defaults if metadata is unavailable to prevent UI crashes
+    model_version = metadata.get('version', 'v2.4.0') if metadata else "v2.4.0"
+    raw_acc = metadata.get('accuracy', 0.8852) if metadata else 0.8852
     display_acc = f"{raw_acc * 100:.2f}%" if raw_acc <= 1.0 else f"{raw_acc:.2f}%"
     
     # Calculate Last Optimized date from the model file's modification timestamp
