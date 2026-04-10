@@ -103,9 +103,10 @@ class MonitoringEngine:
         # Extract Summary Metrics (Bypassing missing methods via Direct Attribute Access)
         drift_share = 0.0
         dataset_drift = False
+        extraction_success = False
         
         try:
-            # First, try the standard method-based extraction we already have
+            # First, try the standard method-based extraction
             report_json = {}
             if hasattr(drift_report, 'dict'):
                 report_json = drift_report.dict()
@@ -126,10 +127,12 @@ class MonitoringEngine:
                     if hasattr(res, 'share_of_drifted_columns'):
                         drift_share = float(res.share_of_drifted_columns)
                         dataset_drift = bool(getattr(res, 'dataset_drift', drift_share > 0.5))
+                        extraction_success = True
                         break
                     elif isinstance(res, dict) and 'share_of_drifted_columns' in res:
                         drift_share = float(res['share_of_drifted_columns'])
                         dataset_drift = bool(res.get('dataset_drift', drift_share > 0.5))
+                        extraction_success = True
                         break
             
             # If we have a report_json, use the existing logic
@@ -137,19 +140,16 @@ class MonitoringEngine:
                 metrics_list = report_json.get('metrics', [])
                 for metric in metrics_list:
                     res = metric.get('result', {})
-                    if USING_PRESET and 'share_of_drifted_columns' in res:
-                        drift_share = float(res['share_of_drifted_columns'])
-                        dataset_drift = bool(res['dataset_drift'])
-                        break
-                    elif not USING_PRESET and 'share_of_drifted_columns' in res:
+                    if 'share_of_drifted_columns' in res:
                         drift_share = float(res['share_of_drifted_columns'])
                         dataset_drift = bool(res.get('dataset_drift', drift_share > 0.5))
+                        extraction_success = True
                         break
         except Exception as e:
             print(f"ERROR: Direct extraction failed: {e}")
-            # Fallback to a very safe neutral value if all else fails
             drift_share = 0.0
             dataset_drift = False
+            extraction_success = False
 
         # 2. Prediction Drift (Target Drift) - Manual Robust Calculation
         # We perform a Kolmogorov-Smirnov test to detect distribution shift in probabilities

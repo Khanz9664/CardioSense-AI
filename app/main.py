@@ -452,19 +452,29 @@ with tab1:
         st.subheader("Local Interpretability (SHAP & LIME)")
         
         st.write("**SHAP Waterfall Base Contribution**")
-        # Use Transformed Data to match SHAP value dimensions
+        # Sync SHAP values with Transformed Data to prevent IndexError
         transformed_sample = predictor.preprocessor.transform(input_df)
-        clean_exp_ui = shap.Explanation(
-            values=shap_vals.values[0],
-            base_values=float(shap_vals.base_values[0]),
-            data=transformed_sample.iloc[0].values,
-            feature_names=transformed_sample.columns.tolist()
-        )
-        fig_wf, ax_wf = plt.subplots(figsize=(8, 6))
-        # Restore the premium Waterfall plot as requested
-        shap.plots.waterfall(clean_exp_ui, max_display=14, show=False)
-        st.pyplot(plt.gcf())
-        plt.close(fig_wf)
+        
+        # We must align the SHAP values (which are calculated from the transformed space)
+        # with the features being displayed.
+        val_dim = shap_vals.values[0].shape[0]
+        feat_dim = transformed_sample.shape[1]
+        
+        if val_dim == feat_dim:
+            clean_exp_ui = shap.Explanation(
+                values=shap_vals.values[0],
+                base_values=float(shap_vals.base_values[0]),
+                data=transformed_sample.iloc[0].values,
+                feature_names=transformed_sample.columns.tolist()
+            )
+            fig_wf, ax_wf = plt.subplots(figsize=(8, 6))
+            # Dynamic max_display to avoid indexing errors
+            max_disp = min(14, feat_dim)
+            shap.plots.waterfall(clean_exp_ui, max_display=max_disp, show=False)
+            st.pyplot(plt.gcf())
+            plt.close(fig_wf)
+        else:
+            st.warning("Diagnostic Shape Mismatch: SHAP attribution dimensions do not match feature space.")
         st.caption("SHAP Waterfall plot showing the magnitude and direction of feature contributions to the local risk score.")
         
         st.markdown("---")
