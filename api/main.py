@@ -14,6 +14,7 @@ from src.models.predict import HeartDiseasePredictor
 from src.utils.logger import setup_logger
 from src.monitoring.logger import MonitoringLogger
 from src.monitoring.engine import MonitoringEngine
+from src.utils.version_utils import get_model_version
 from fastapi import BackgroundTasks
 
 # Initialize Production-Grade Logger
@@ -39,7 +40,8 @@ async def lifespan(app: FastAPI):
         try:
             with open(METADATA_PATH, 'r') as f:
                 metadata = json.load(f)
-                model_version = metadata.get("version", "1.0.0")
+                model_version = metadata.get("version", "2.4.0")
+                app.version = model_version # Sync FastAPI version if metadata updated
             logger.info(f"Clinical metadata loaded. Active Model Version: {model_version}")
         except Exception as e:
             logger.error(f"Startup Warning: Could not parse metadata. {e}")
@@ -49,9 +51,9 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Clinical Intelligence System...")
 
 app = FastAPI(
-    title="CardioSense AI Inference Gateway",
-    description="Production-grade clinical API for real-time risk assessment with traceability and audit logging.",
-    version="2.1.0",
+    title="CardioSense AI: Clinical Decision Support API",
+    description="Medical-grade cardiovascular risk stratification engine with integrated ACC/AHA safety guardrails and multi-modal explainability.",
+    version=get_model_version(),
     lifespan=lifespan
 )
 

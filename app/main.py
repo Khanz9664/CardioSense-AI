@@ -169,8 +169,8 @@ except Exception as e:
     st.stop()
 
 # --- PDF UTILITIES ---
-def get_report_generator(audit_hash):
-    return ClinicalReportGenerator(logo_path=LOGO_PATH, audit_hash=audit_hash)
+def get_report_generator(audit_hash, version="2.4.0"):
+    return ClinicalReportGenerator(logo_path=LOGO_PATH, audit_hash=audit_hash, version=version)
 
 def create_radar_chart_pdf(input_df, opt_result, simulator):
     try:
@@ -402,7 +402,7 @@ with top_col2:
     if opt_full:
         radar_plot_path = create_radar_chart_pdf(input_df, opt_full, simulator)
 
-    generator = get_report_generator(audit_hash)
+    generator = get_report_generator(audit_hash, version=model_version)
     pdf_output = generator.generate_report(
         input_df=input_df,
         prediction=prediction,
