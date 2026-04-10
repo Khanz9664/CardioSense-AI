@@ -5,7 +5,7 @@ import json
 import os
 from typing import Dict, Any, Optional, Tuple
 from evidently.report import Report
-from evidently.metrics import DriftedColumnsCount
+from evidently.metric_preset import DataDriftPreset
 from scipy.stats import ks_2samp
 from src.monitoring.logger import MonitoringLogger
 
@@ -45,8 +45,8 @@ class MonitoringEngine:
         # Align columns (drop metadata columns from current_df for comparison)
         compare_cols = [c for c in ref_df.columns if c in current_df.columns]
         
-        # 1. Data Drift Report (Using the robust DriftedColumnsCount metric)
-        drift_report = Report([DriftedColumnsCount()])
+        # 1. Data Drift Report (Using the stable DataDriftPreset for comprehensive analysis)
+        drift_report = Report([DataDriftPreset()])
         snapshot = drift_report.run(current_data=current_df[compare_cols], reference_data=ref_df[compare_cols])
         
         # Save HTML Report for the UI to embed
@@ -62,14 +62,16 @@ class MonitoringEngine:
         dataset_drift = False
         
         try:
-            # Look for DataDriftTable result
+            # DataDriftPreset metrics results are nested differently
             for metric in report_json.get('metrics', []):
-                if 'share_of_drifted_columns' in metric.get('result', {}):
-                    drift_share = float(metric['result']['share_of_drifted_columns'])
-                    dataset_drift = bool(metric['result']['dataset_drift'])
+                res = metric.get('result', {})
+                # DatasetDriftMetric provides share_of_drifted_columns
+                if 'share_of_drifted_columns' in res:
+                    drift_share = float(res['share_of_drifted_columns'])
+                    dataset_drift = bool(res['dataset_drift'])
                     break
         except Exception as e:
-            print(f"Warning: Could not extract drift metrics from JSON: {e}")
+            print(f"Warning: Could not extract drift metrics from Preset: {e}")
 
         # 2. Prediction Drift (Target Drift) - Manual Robust Calculation
         # We perform a Kolmogorov-Smirnov test to detect distribution shift in probabilities
