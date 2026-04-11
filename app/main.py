@@ -28,6 +28,9 @@ plt.rcParams['mathtext.default'] = 'regular' # Prevent math-text parsing errors
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+import base64
+import io
+
 import importlib
 
 # Force reload internal modules to bypass Streamlit's old sys.modules cache
@@ -167,6 +170,13 @@ try:
 except Exception as e:
     st.error(f"System Offline: {e}. Please ensure the training pipeline has been completed.")
     st.stop()
+
+# --- PLOTTING UTILITIES ---
+def fig_to_base64(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches='tight', dpi=120)
+    plt.close(fig)
+    return base64.b64encode(buf.getvalue()).decode()
 
 # --- PDF UTILITIES ---
 def get_report_generator(audit_hash, version="2.4.0"):
@@ -467,12 +477,18 @@ with tab1:
                 data=transformed_sample.iloc[0].values,
                 feature_names=transformed_sample.columns.tolist()
             )
-            fig_wf, ax_wf = plt.subplots(figsize=(8, 6))
-            # Dynamic max_display to avoid indexing errors
-            max_disp = min(14, feat_dim)
-            shap.plots.waterfall(clean_exp_ui, max_display=max_disp, show=False)
-            st.pyplot(plt.gcf())
-            plt.close(fig_wf)
+            
+            try:
+                fig_wf, ax_wf = plt.subplots(figsize=(8, 6))
+                max_disp = min(14, feat_dim)
+                shap.plots.waterfall(clean_exp_ui, max_display=max_disp, show=False)
+                st.image(f"data:image/png;base64,{fig_to_base64(fig_wf)}", width="stretch")
+            except Exception as e:
+                # Fallback to horizontal bar plot if waterfall fails (Fault-Tolerance)
+                fig_bar, ax_bar = plt.subplots(figsize=(8, 6))
+                shap.plots.bar(clean_exp_ui, max_display=14, show=False)
+                st.image(f"data:image/png;base64,{fig_to_base64(fig_bar)}", width="stretch")
+                st.caption("Note: Rendered in Bar-mode for clinical stability.")
         else:
             st.warning("Diagnostic Shape Mismatch: SHAP attribution dimensions do not match feature space.")
         st.caption("SHAP Waterfall plot showing the magnitude and direction of feature contributions to the local risk score.")
@@ -484,7 +500,7 @@ with tab1:
             if lime_exp:
                 fig_lime = lime_exp.as_pyplot_figure()
                 fig_lime.set_size_inches(8, 6)
-                st.pyplot(fig_lime)
+                st.image(f"data:image/png;base64,{fig_to_base64(fig_lime)}", width="stretch")
                 plt.close(fig_lime)
                 st.caption("LIME visualization displaying linear surrogate weights driving local probability.")
             else:
@@ -617,7 +633,7 @@ with tab3:
     if global_fig:
         col_g1, col_g2, col_g3 = st.columns([1, 2, 1])
         with col_g2:
-            st.pyplot(global_fig, width='stretch')
+            st.image(f"data:image/png;base64,{fig_to_base64(global_fig)}", width="stretch")
     else:
         st.warning("Global insights require pre-trained reference data.")
         
@@ -636,7 +652,7 @@ with tab3:
             ax_imp.set_xlabel("Relative Importance", fontsize=9)
             ax_imp.tick_params(axis='y', labelsize=8)
             ax_imp.tick_params(axis='x', labelsize=8)
-            st.pyplot(fig_imp)
+            st.image(f"data:image/png;base64,{fig_to_base64(fig_imp)}", width="stretch")
             
         with fa_col2:
             st.write("**Permutation Importance**")
@@ -648,7 +664,7 @@ with tab3:
                 ax_perm.set_xlabel("Mean AUC Drop", fontsize=9)
                 ax_perm.tick_params(axis='y', labelsize=8)
                 ax_perm.tick_params(axis='x', labelsize=8)
-                st.pyplot(fig_perm)
+                st.image(f"data:image/png;base64,{fig_to_base64(fig_perm)}", width="stretch")
             else:
                 st.info("Permutation importance unavailable.")
                 
@@ -685,7 +701,7 @@ with tab3:
         
         col_c1, col_c2, col_c3 = st.columns([1, 4, 1]) # Expand display column
         with col_c2:
-            st.pyplot(fig_corr, width='stretch')
+            st.image(f"data:image/png;base64,{fig_to_base64(fig_corr)}", width="stretch")
 
 with tab4:
     col_acc, col_auc, col_ver, col_prauc = st.columns(4)
@@ -709,7 +725,7 @@ with tab4:
         fig_cm, ax_cm = plt.subplots(figsize=(6, 4))
         sns.heatmap(cm, annot=True, fmt='d', cmap='Reds', ax=ax_cm,
                     xticklabels=['Negative', 'Positive'], yticklabels=['Actual Neg', 'Actual Pos'])
-        st.pyplot(fig_cm)
+        st.image(f"data:image/png;base64,{fig_to_base64(fig_cm)}", width="stretch")
     
     with cal_col:
         if 'calibration_curve' in metadata:
@@ -721,7 +737,7 @@ with tab4:
             ax_cal.set_xlabel('Mean Predicted Probability')
             ax_cal.set_ylabel('Fraction of Positives')
             ax_cal.legend(loc="lower right")
-            st.pyplot(fig_cal)
+            st.image(f"data:image/png;base64,{fig_to_base64(fig_cal)}", width="stretch")
         else:
             st.write("**Hyperparameter Blueprint (Optuna Optimized)**")
             st.json(metadata.get('best_params', {}))
@@ -807,7 +823,7 @@ with tab5:
                 fig_dist = go.Figure()
                 fig_dist.add_trace(go.Histogram(x=hist_df['probability'], nbinsx=20, name='Production', marker_color='#339af0', opacity=0.75))
                 fig_dist.update_layout(height=350, margin=dict(l=0, r=0, t=30, b=0), barmode='overlay')
-                st.plotly_chart(fig_dist, width='stretch')
+                st.plotly_chart(fig_dist, width="stretch")
         
         # Deep Dive Report
         st.markdown("---")

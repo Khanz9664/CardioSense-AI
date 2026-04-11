@@ -37,6 +37,22 @@ class MonitoringEngine:
         self.logger = MonitoringLogger(db_path)
         self.report_dir = "reports/monitoring"
         os.makedirs(self.report_dir, exist_ok=True)
+        self.internal_logs = []
+        self._log("Monitoring Engine initialized.", "INFO")
+
+    def _log(self, message: str, level: str = "INFO"):
+        """Records internal engine events for professional diagnostic retrieval."""
+        import datetime
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.internal_logs.append({
+            "timestamp": timestamp,
+            "level": level,
+            "message": message
+        })
+
+    def get_internal_logs(self):
+        """Returns the internal diagnostic registry."""
+        return self.internal_logs
 
     def _load_reference_data(self) -> pd.DataFrame:
         """Loads the training snapshot used as the monitoring baseline."""
@@ -67,25 +83,25 @@ class MonitoringEngine:
             else:
                 drift_report = Report([DriftedColumnsCount()])
         except Exception as e:
-            print(f"ERROR: Report initialization failed: {e}")
+            self._log(f"Report initialization failed: {e}", "ERROR")
             return {"status": "error", "message": f"Init failed: {e}"}
             
         if drift_report is None:
-            print("ERROR: drift_report is None after initialization")
+            self._log("drift_report is None after initialization", "ERROR")
             return {"status": "error", "message": "Report is None"}
 
-        print(f"DEBUG: drift_report type before run: {type(drift_report)}")
+        self._log(f"drift_report type before run: {type(drift_report)}", "DEBUG")
         
         try:
             drift_report.run(current_data=current_df[compare_cols], reference_data=ref_df[compare_cols])
         except Exception as e:
-            print(f"ERROR: Report run failed: {e}")
+            self._log(f"Report run failed: {e}", "ERROR")
             return {"status": "error", "message": f"Run failed: {e}"}
 
-        print(f"DEBUG: drift_report type after run: {type(drift_report)}")
+        self._log(f"drift_report type after run: {type(drift_report)}", "DEBUG")
         
         if drift_report is None:
-            print("ERROR: drift_report is None after run")
+            self._log("drift_report is None after run", "ERROR")
             return {"status": "error", "message": "Report nullified after run"}
 
         # Save HTML Report for the UI to embed (Adaptive Search)
@@ -180,7 +196,7 @@ class MonitoringEngine:
                 # p-value < 0.05 indicates drift
                 target_drift_detected = bool(p_value < 0.05)
         except Exception as e:
-            print(f"Warning: Manual Target Drift Test failed: {e}")
+            self._log(f"Manual Target Drift Test failed: {e}", "WARNING")
 
         return {
             "status": "success",
@@ -233,4 +249,3 @@ class MonitoringEngine:
 
 if __name__ == "__main__":
     engine = MonitoringEngine()
-    print("Monitoring Engine initialized.")
