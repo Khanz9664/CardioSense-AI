@@ -327,7 +327,7 @@ with top_col1:
         }
     ))
     fig_gauge.update_layout(height=350, margin=dict(l=20, r=20, t=50, b=20))
-    st.plotly_chart(fig_gauge, width='stretch')
+    st.plotly_chart(fig_gauge, width="stretch")
 
 with top_col2:
     status_class = "risk-high" if (prediction[0] == 1 or clinical_overrides) else "risk-low"
@@ -425,7 +425,7 @@ with top_col2:
         data=bytes(pdf_output),
         file_name=f"cardio_report_{datetime.date.today()}.pdf",
         mime="application/pdf",
-        width='stretch'
+        width="stretch"
     )
     
     # Cleanup temp files
@@ -590,7 +590,7 @@ with tab2:
             fig_radar.add_trace(go.Scatterpolar(r=o_vals, theta=labels, fill='toself', name='Target', line_color='#28a745'))
             fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 1.2], showticklabels=False)), 
                                    height=350, margin=dict(l=30, r=30, t=30, b=30), paper_bgcolor='rgba(0,0,0,0)')
-            st.plotly_chart(fig_radar, use_container_width=True, key=f"radar_{audit_hash}")
+            st.plotly_chart(fig_radar, width="stretch", key=f"radar_{audit_hash}")
 
     # 2. ROADMAP STEPS
     with opt_col2:
@@ -749,9 +749,14 @@ with tab5:
     st.subheader("Clinical Reliability & Drift Monitoring")
     st.write("This section tracks the engine's performance stability and environmental consistency over time.")
     
+    @st.cache_data(ttl=3600)  # Cache for 1 hour to prevent slider-triggered re-runs
+    def get_monitoring_results(_engine, window_size):
+        drift = _engine.run_drift_analysis(window_size=window_size)
+        perf = _engine.run_performance_audit()
+        return drift, perf
+
     with st.spinner("Analyzing production data logs..."):
-        drift_results = mon_engine.run_drift_analysis(window_size=200)
-        perf_results = mon_engine.run_performance_audit()
+        drift_results, perf_results = get_monitoring_results(mon_engine, window_size=200)
         
     mon_col1, mon_col2, mon_col3 = st.columns(3)
     
