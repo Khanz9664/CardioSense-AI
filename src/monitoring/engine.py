@@ -111,9 +111,9 @@ class MonitoringEngine:
                 drift_report.save_html(html_path)
             elif hasattr(drift_report, 'save'):
                 drift_report.save(html_path)
-        except Exception:
-            # Silent fallback for environment-specific rendering limits
-            pass
+        except Exception as e:
+            # Fallback for environment-specific rendering limits
+            self._log(f"Report HTML save failed: {e}", "WARNING")
         
         # Extract Summary Metrics (Bypassing missing methods via Direct Attribute Access)
         drift_share = 0.0

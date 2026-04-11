@@ -342,3 +342,11 @@ ValueError: [TypeError("'numpy.bool' object is not iterable"), TypeError('vars()
 2026-04-06 21:22:18,632 | INFO     | [API-ENGINE] | REQ [39751c2f-209d-4730-a0a4-0837150ae755] | GET /health | STATUS: 200 | DUR: 0.0020s
 2026-04-06 21:22:35,605 | INFO     | [API-ENGINE] | REQ [b1925b6f-7680-470c-89a4-ae78ce9c1f7c] | GET /monitoring/status | STATUS: 200 | DUR: 0.5281s
 2026-04-06 21:23:03,067 | INFO     | [API-ENGINE] | Shutting down Clinical Intelligence System...
+2026-04-11 11:24:58,739 | INFO     | [API-ENGINE] | Initializing Clinical Intelligence System...
+2026-04-11 11:24:58,777 | INFO     | [API-ENGINE] | Predictor model and preprocessor successfully loaded.
+2026-04-11 11:24:58,778 | INFO     | [API-ENGINE] | Clinical metadata loaded. Active Model Version: 2.4.0
+2026-04-11 11:25:05,575 | INFO     | [API-ENGINE] | REQ [fdab21b0-bef9-4eda-bd57-f187ff0b3441] | GET / | STATUS: 200 | DUR: 0.0041s
+2026-04-11 11:25:06,283 | INFO     | [API-ENGINE] | REQ [7c1ce280-1cbf-455b-8087-57a27827cf74] | GET /favicon.ico | STATUS: 404 | DUR: 0.0005s
+2026-04-11 11:25:11,432 | INFO     | [API-ENGINE] | REQ [0df41d96-6591-4aa3-8a81-9a70c28ada4c] | GET /docs | STATUS: 200 | DUR: 0.0005s
+2026-04-11 11:25:12,193 | INFO     | [API-ENGINE] | REQ [1e75a09c-be4d-4f92-9ef7-b69c598e5d46] | GET /openapi.json | STATUS: 200 | DUR: 0.0169s
+2026-04-11 11:25:27,862 | INFO     | [API-ENGINE] | Shutting down Clinical Intelligence System...

@@ -113,7 +113,10 @@ class HeartDiseaseRecommender:
                             "rationale": f"SHAP analysis identifies {feat.upper()} as a top driver for this patient's risk profile.",
                             "type": "Data-Driven"
                         })
-            except Exception:
+            except Exception as e:
+                # In a clinical environment, we log the failure to generate a specific recommendation
+                # but allow the engine to proceed with other recommendations.
+                print(f"DEBUG: Recommendation generation failed for factor {feat}: {e}")
                 continue
 
         # Sort: High -> Moderate -> Low

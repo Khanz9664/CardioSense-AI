@@ -15,7 +15,7 @@ class ClinicalReportGenerator(FPDF):
         self.version = version
         self.set_auto_page_break(auto=True, margin=15)
         self.report_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        self.report_id = hashlib.md5(self.report_date.encode()).hexdigest()[:8].upper()
+        self.report_id = hashlib.md5(self.report_date.encode(), usedforsecurity=False).hexdigest()[:8].upper()
         self.audit_hash = audit_hash or "N/A"
 
     def header(self):

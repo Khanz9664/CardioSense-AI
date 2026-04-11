@@ -69,8 +69,8 @@ class MonitoringLogger:
     def get_recent_logs(self, limit: int = 1000) -> pd.DataFrame:
         """Retrieves recent logs as a pandas DataFrame for drift analysis."""
         conn = sqlite3.connect(self.db_path)
-        query = f"SELECT * FROM inference_logs ORDER BY timestamp DESC LIMIT {limit}"
-        df = pd.read_sql_query(query, conn)
+        query = "SELECT * FROM inference_logs ORDER BY timestamp DESC LIMIT ?"
+        df = pd.read_sql_query(query, conn, params=(int(limit),))
         conn.close()
         
         if df.empty:

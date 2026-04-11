@@ -1,0 +1,19 @@
+# Bandit configuration file
+# Ref: https://bandit.readthedocs.io/en/latest/config.html
+
+# Exclude files from scanning
+exclude_dirs: ['tests', 'venv', '.venv', '__pycache__', '.git']
+
+# Explicitly skip certain tests for specific files
+# (Not supported in .bandit.yaml directly, but we can configure global skips)
+# we will use the --skips flag in CI, but here we define the basics
+
+# skips: ['B101'] # We could skip B101 globally, but it's better to exclude tests dir
+
+# Profiles
+profiles:
+    clinical_audit:
+        include:
+            - any_other_test_id_here
+        exclude:
+            - B101 # Assert used (common in tests, but we excluded tests dir already)

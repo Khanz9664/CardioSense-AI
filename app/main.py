@@ -52,7 +52,6 @@ from src.utils.safety_engine import HeartDiseaseSafetyEngine
 from src.monitoring.engine import MonitoringEngine
 from app.components.footer import render_footer
 import streamlit.components.v1 as components
-import subprocess
 import sys
 
 # Page Config
@@ -263,7 +262,7 @@ with st.sidebar:
     st.info(f"Medical Grade AI | v{metadata.get('version', '1.0.0') if metadata else 'N/A'} Production")
     st.sidebar.markdown("---")
     st.sidebar.caption(f" **Clinical Engine**: v{metadata.get('version', '1.0.0') if metadata else 'N/A'}")
-    st.sidebar.caption(f" **Audit Hash**: {hashlib.md5(str(metadata).encode()).hexdigest()[:8].upper() if metadata else 'N/A'}")
+    st.sidebar.caption(f" **Audit Hash**: {hashlib.md5(str(metadata).encode(), usedforsecurity=False).hexdigest()[:8].upper() if metadata else 'N/A'}")
 
 # --- MAIN DASHBOARD ---
 # 1. Safety & Trust Header
@@ -407,7 +406,7 @@ with top_col2:
     # Check for simulation state
     opt_full = st.session_state.get('last_opt_full', None)
     confidence = safety_engine.calculate_confidence(probability[0][1])
-    audit_hash = hashlib.md5(str(metadata).encode()).hexdigest()[:12].upper()
+    audit_hash = hashlib.md5(str(metadata).encode(), usedforsecurity=False).hexdigest()[:12].upper()
     
     radar_plot_path = None
     if opt_full:
