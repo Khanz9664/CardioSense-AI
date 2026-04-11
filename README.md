@@ -110,7 +110,10 @@ streamlit run app/main.py
 
 **Launch Production API Service:**
 ```bash
-uvicorn api.main:app --host 0.0.0.0 --port 8000
+# Configure via env vars (optional)
+export HOST=0.0.0.0
+export PORT=8000
+uvicorn api.main:app
 ```
 
 ---
@@ -119,6 +122,8 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 - **The Safety & Trust Framework**: Implements ACC/AHA guideline overrides and out-of-distribution (OOD) monitoring.
 - **The Optimization Engine**: Calculates the "Least Effort Path" to risk reduction using clinical cost-weights.
 - **The Explainability Engine**: Powered by SHAP and LIME for local feature-level contributions and model reasoning.
+- **Adaptive Monitoring Layer**: Automated Data/Concept drift detection with self-healing fallback for cross-environment stability.
+- **Security & Compliance**: Hardened against OWASP-style attacks; Bandit/Safety audited CI/CD pipeline.
 - **Modern Infrastructure**: Fully integrated **FastAPI Lifespan** management and hardened monitoring (variance guards).
 
 ---
@@ -135,6 +140,7 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 | **Clinical Tests** | **40** | Total verified clinical scenarios and edge cases. |
 | **Safety Engine** | **Active** | Standard-of-care guardrails for critical vitals. |
 | **Auditability** | **Enabled** | Full request tracing (Lifespan) and state hashing. |
+| **Security Audit** | **100% Pass** | Bandit (Static Analysis) & Safety (Dependencies) verified. |
 
 ---
 

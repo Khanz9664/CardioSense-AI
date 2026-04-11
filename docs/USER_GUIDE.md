@@ -75,6 +75,14 @@ CardioSense AI is audited to ensure that the AI model performs reliably across a
 
 - **Regional Parity**: We prioritize high **Recall (Sensitivity)** in historically marginalized or vulnerable subgroups (e.g., Female and Senior populations) to ensure no high-risk patient is missed due to algorithmic bias.
 
+### Model Transparency & Integrity
+The **System Integrity** module validates the underlying statistical performance of the clinical engine.
+
+![System Integrity Dashboard](../app/assets/App_Screenshots/10.png)
+
+- **Validation Confusion Matrix**: Visualizes true/false positives and negatives on the hold-out validation set.
+- **Model Calibration Curve**: Ensures that the AI's predicted "Risk Pulse" aligns with actual clinical frequencies (Brier Score: 0.0814).
+
 ---
 
 5. **Medical Safety Guardrails**
@@ -100,6 +108,34 @@ Every prediction includes a **Confidence Gauge** (1.0 - H(p)). These values are 
 After completing your assessment, generate a professional report for the patient's medical file:
 1.  Input clinician observations.
 2.  Click **"Download Clinical PDF Report"**.
-    - **Clinical Radar Chart**: current vs. target profiles.
-    - **Intervention Roadmap**: prioritized treatment steps.
     - **Clinical Audit Hash**: cryptographic link for medical records.
+
+#### Report Preview (Full Clinical Payload)
+![PDF Page 1](../app/assets/App_Screenshots/PDF_Page_1.png)
+![PDF Page 2](../app/assets/App_Screenshots/PDF_Page_2.png)
+![PDF Page 3](../app/assets/App_Screenshots/PDF_Page_3.png)
+![PDF Page 4](../app/assets/App_Screenshots/PDF_Page_4.png)
+![PDF Page 5](../app/assets/App_Screenshots/PDF_Page_5.png)
+
+---
+
+7. **Clinical Monitoring & Reliability**
+
+The **Clinical Monitoring** tab allows physicians to monitor the system's "real-world" performance and data stability over time.
+
+### Data Drift (Evidently AI)
+This module monitors for shifts in the distribution of patient data (e.g., if the incoming population's average cholesterol suddenly spikes). 
+- **Drift Share**: The percentage of clinical features currently showing statistical drift.
+- **Dataset Drift**: A binary flag indicating if the overall population profile has significantly deviated from the validated training baseline.
+
+### Performance Audit (Concept Drift)
+By collecting ground-truth feedback from clinicians, the system tracks its **Recall Stability**.
+- **Recall Drop**: Measures the decay in sensitivity compared to the 92.86% baseline.
+- **Concept Drift Alert**: Scalates to clinicians if the model's predictive quality falls below acceptable safety thresholds.
+
+![Monitoring Overview](../app/assets/App_Screenshots/12.png)
+![Evidently AI Report](../app/assets/App_Screenshots/13.png)
+
+---
+
+*The clinical logic and monitoring frameworks in v2.4.0 are designed to ensure long-term model sustainability in dynamic medical environments.*

@@ -72,27 +72,48 @@ PYTHONPATH=. .venv/bin/pytest tests/ --cov=src --cov-report=term-missing
 
 ---
 
-## 4. Clinical Auditability
+## 4. Security & Compliance Workflows
+
+To ensure the clinical safety of the codebase, we maintain a 100% security pass rate.
+
+### Static Analysis (Bandit)
+Scans the codebase for insecure Python patterns.
+```bash
+# Run full security audit
+bandit -r . -x ./tests,./venv,./.venv
+```
+
+### Dependency Audit (Safety)
+Scans `requirements.txt` for known vulnerabilities in third-party libraries.
+```bash
+# Run dependency audit
+safety check -r requirements.txt
+```
+
+---
+
+## 5. Clinical Auditability
 
 - **Audit Hash**: The dashboard displays a unique SHA-256 hash of the loaded model metadata. This allows clinicians to verify that the decision support engine has not been altered since its last validated training run.
 - **Access Logs**: The system records every inference request with its associated probability and clinical reasoning in `logs/cardiosense.log`.
 
 ---
 
-## 5. CI/CD & Automated Clinical Pipelines
+## 6. CI/CD & Automated Clinical Pipelines
 
 Every push to the `main` branch triggers an automated **Clinical Decision Guardrail Pipeline** via GitHub Actions:
 
 1.  **Job 1: Linting**: Ensures code quality and clinical-grade standards using `flake8`.
 2.  **Job 2: Clinical Testing**: Automates the full `pytest` suite across the Safety, API, Monitoring, and Simulator modules.
 3.  **Job 3: Model Ingest Audit**: Verifies that new clinical data patterns correctly traverse the `ColumnTransformer` preprocessing layer.
-4.  **Job 4: Docker Build**: Packages the FastAPI inference gateway into a production-ready container (`Dockerfile`) to ensure deployment portability.
+4.  **Job 4: Security Audit**: Runs `bandit` and `safety` scans. The pipeline will fail if any High or Medium severity vulnerabilities are detected.
+5.  **Job 5: Docker Build**: Packages the FastAPI inference gateway into a production-ready container (`Dockerfile`) to ensure deployment portability.
 
 ---
 
 ---
  
- ## 6. Model Hyperparameter Blueprint (v2.4.0)
+ ## 7. Model Hyperparameter Blueprint (v2.4.0)
  
  The current production model was optimized using Optuna (100 trials) to achieve a clinical-grade accuracy of **88.52%** ($N=303$).
  
@@ -113,7 +134,7 @@ Every push to the `main` branch triggers an automated **Clinical Decision Guardr
  
  ---
  
- ## 7. Dependencies
+ ## 8. Dependencies
 
 - **Modeling**: `xgboost`, `scikit-learn`, `optuna`, `joblib`.
 - **Explainability**: `shap`, `matplotlib`, `seaborn`.

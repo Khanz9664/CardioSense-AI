@@ -17,7 +17,7 @@ graph TB
 
     subgraph "Backend Layer (FastAPI)"
         API[RESTful API]
-        Auth[Security Gate]
+        Auth[Security & Audit Gate]
     end
 
     subgraph "Core Intelligence Layer (Python)"
@@ -26,12 +26,13 @@ graph TB
         Safety[Safety & Confidence Engine]
         Simulator[Intervention Simulator]
         Recommender[Clinical Recommendation Engine]
+        Audit[Bandit/Safety Audit Layer]
     end
 
     subgraph "Data & Artifacts"
         Model[(XGBoost Model)]
         Meta[(Model Metadata)]
-        Hist[(Inference History DB)]
+        Hist[(Inference History SQLite)]
         Data[(UCI Patient Data)]
     end
 
@@ -46,6 +47,8 @@ graph TB
     Report --> Predictor
     API --> Hist
     UI --> Hist
+    Audit -.-> API
+    Audit -.-> UI
 ```
 
 ---
@@ -110,8 +113,9 @@ In medical AI, "Black Box" models are unusable. We implement four layers of trus
 1.  **Clinical Overrides**: Hard-stop medical rules based on ACC/AHA guidelines (e.g., Hypertensive Crisis, Ischemia detected in ECG) that trigger alerts regardless of AI probability.
 2.  **Out-of-Distribution (OOD) Monitoring**: Compares input data against the statistical bounds of the training set (e.g., age ranges, BP maximums).
 3.  **Entropy-Based Confidence**: Calculates the mathematical uncertainty of the model's output, labeled as **High**, **Moderate**, or **Low** based on probability distribution clusters.
-4.  **Audit Hashes**: Every inference result is cryptographically linked to the model version and timestamp to ensure data integrity.
-5.  **Dynamic Monitoring Gateway**: Implements a `MonitoringEngine` that tracks **Data Drift** (using Evidently AI) and **Performance Decay** (Concept Drift) vs. the training baseline.
+4.  Audit Hashes: Every inference result is cryptographically linked to the model version and timestamp (`usedforsecurity=False` flagged for audit compliance).
+5.  **Adaptive Monitoring Gateway**: Implements a `MonitoringEngine` that tracks **Data Drift** (using Evidently AI) and **Performance Decay** (Concept Drift). The engine uses an **Adaptive Search** pattern to maintain compatibility across varying host environments.
+6.  **Persistent Telemetry**: All inference events are logged to a local **SQLite database**, enabling the clinical dashboard to run longitudinal drift analysis and performance audits.
 
 ---
 
@@ -150,7 +154,17 @@ To meet modern medical-legal standards for AI, the training pipeline includes a 
 
 ---
 
-## 8. Project Blueprint (Source Code Organization)
+## 8. Security & Compliance Layer
+
+CardioSense AI adheres to modern security standards for medical software:
+1.  **Static Analysis (SAST)**: Integrated **Bandit** scanning to identify and mitigate insecure Python code patterns (e.g., shell injection, weak hashes).
+2.  **Dependency Auditing**: Integrated **Safety** scans to ensure all third-party libraries in `requirements.txt` are free from known CVEs.
+3.  **Hardened API**: Configurable `HOST` and `PORT` via environment variables to prevent accidental exposure of the inference gateway.
+4.  **Middleware Integrity**: Request-ID injection ensures full traceability from the frontend to the backend logs.
+
+---
+
+## 9. Project Blueprint (Source Code Organization)
 
 - `api/`: Production FastAPI gateway and middleware.
 - `app/`: Clinical Streamlit dashboard and UI logic.

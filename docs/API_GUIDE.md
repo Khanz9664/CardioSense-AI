@@ -10,8 +10,8 @@ CardioSense AI exposes a production-grade FastAPI REST interface for seamless in
 
 ## 1. Base URL & Endpoints
 
-- **Development**: `http://localhost:8000`
-- **Production**: (Based on deployment)
+- **Development**: `http://localhost:8000` (Default)
+- **Production**: Configurable via `HOST` and `PORT` environment variables.
 
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
@@ -117,7 +117,23 @@ CardioSense AI uses a rotating file-based JSON logger (`logs/cardiosense.log`).
 
 ---
 
-## 4. Implementation Examples
+## 4. Security & Audit Integrity
+
+### Environment Configuration
+The API gateway is hardened against accidental exposure. Use environment variables for production orchestration:
+- `HOST`: The network interface to bind to (Default: `127.0.0.1`).
+- `PORT`: The listening port (Default: `8000`).
+
+### Clinical Security Audit
+Every release is audited using automated SAST (Static Application Security Testing) tools:
+1.  **Bandit (SAST)**: Scans for insecure code patterns and provides CWE-mapped security reports.
+2.  **Safety (SCA)**: Verifies that all dependencies in `requirements.txt` are free from known vulnerabilities.
+
+Current Audit Status: **100% PASS** (No High/Medium vulnerabilities detected).
+
+---
+
+## 5. Implementation Examples
 
 ### Python Integration (with Tracing)
 ```python
@@ -136,7 +152,7 @@ print(response.json())
 
 ---
 
-## 5. Error & Status Codes
+## 6. Error & Status Codes
 
 - `200 OK`: Success.
 - `400 Bad Request`: Input validation failed or clinical logic error.
